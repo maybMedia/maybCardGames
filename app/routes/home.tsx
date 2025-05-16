@@ -16,12 +16,12 @@ export default function Home() {
         <GameSelectButton 
           name="Solitaire" 
           description="A strategy card game played by one player" 
-          imageUrl="/solitaire.png"
+          imageUrl="./solitaire.png"
           navigateTo="/solitaire"/>
         <GameSelectButton 
           name="Blackjack" 
           description="A game where you aim to get as close to 21 as possible" 
-          imageUrl="/blackjack.png"
+          imageUrl="./blackjack.png"
           navigateTo="/blackjack"/>
       </div>
     </div>
