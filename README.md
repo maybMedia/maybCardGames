@@ -8,7 +8,6 @@ mayb Card Games is a modern web app that lets you play classic card games like B
 - **Solitaire**: (Coming soon) Enjoy a single-player strategy card game.
 - **Responsive Design**: Looks great on all devices.
 - **Animated UI**: Smooth card draw and bust animations for an engaging experience.
-- **Easy Navigation**: Quickly switch between games using the navbar or home screen.
 
 ## Getting Started
 
