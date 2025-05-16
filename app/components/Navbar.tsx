@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 export default function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 w-full h-16 bg-slate-800 text-white p-4">
+    <nav className="md:fixed md:top-0 md:left-0 w-full h-16 bg-slate-800 text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-lg font-bold">
           maybCardGames
