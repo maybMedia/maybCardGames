@@ -2,7 +2,7 @@
   "name": "maybcardgames",
   "version": "1.0.0",
   "description": "A collection of card games.",
-  "homepage": "https://maybmedia.github.io/maybcardgames/",
+  "homepage": "https://maybmedia.github.io/",
   "private": false,
   "type": "module",
   "scripts": {
