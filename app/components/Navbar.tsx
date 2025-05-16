@@ -9,17 +9,17 @@ export default function Navbar() {
         </Link>
         <ul className="flex space-x-4">
           <li>
-            <Link to="/" className="hover:underline">
+            <Link to="/solitaire" className="hover:underline">
               Solitaire
             </Link>
           </li>
           <li>
-            <Link to="/about" className="hover:underline">
+            <Link to="/blackjack" className="hover:underline">
               Blackjack
             </Link>
           </li>
           <li>
-            <Link to="/links" className="hover:underline">
+            <Link to="/" className="hover:underline">
               More...
             </Link>
           </li>
