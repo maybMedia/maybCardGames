@@ -17,12 +17,12 @@ export default function Home() {
           name="Solitaire" 
           description="A strategy card game played by one player" 
           imageUrl="./solitaire.png"
-          navigateTo="/solitaire"/>
+          navigateTo="/maybCardGames/solitaire"/>
         <GameSelectButton 
           name="Blackjack" 
           description="A game where you aim to get as close to 21 as possible" 
           imageUrl="./blackjack.png"
-          navigateTo="/blackjack"/>
+          navigateTo="/maybCardGames/blackjack"/>
       </div>
     </div>
   );
