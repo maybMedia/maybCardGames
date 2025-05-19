@@ -192,6 +192,7 @@ export default function Blackjack() {
               {/* Dealer's Hand */}
               <div className="flex flex-col items-center mb-4">
                 <h2 className="text-lg font-bold">Dealer's Hand</h2>
+                <p className="">Score: {calculateScore(dealerHand)}</p>
                 <div className="flex gap-2">
                   {dealerHand.map((card, index) => (
                     <div
