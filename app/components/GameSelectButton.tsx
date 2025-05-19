@@ -16,7 +16,7 @@ const GameSelectCard: React.FC<GameSelectButtonProps> = ({ name, description, im
       <img src={imageUrl} alt={name} />
       <h2 className="text-lg font-bold">{name}</h2>
       <p className="text-center">{description}</p>
-      <button className="mt-4 bg-blue-500 text-white rounded-full px-4 py-2 hover:bg-blue-600 transition duration-300 ease-in-out" onClick={() => navigate(navigateTo)}>
+      <button className="mt-4 bg-blue-500 text-white rounded-full px-4 py-2 hover:bg-blue-600 transition duration-300 ease-in-out" onClick={() => navigate(navigateTo, { viewTransition: true })}>
         Play
       </button>
     </div>

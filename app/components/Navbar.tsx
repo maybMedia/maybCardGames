@@ -4,22 +4,22 @@ export default function Navbar() {
   return (
     <nav className="md:fixed md:top-0 md:left-0 w-full h-16 bg-slate-800 text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/maybCardGames/" className="text-lg font-bold">
+        <Link to="/maybCardGames/" className="text-lg font-bold" viewTransition>
           maybCardGames
         </Link>
         <ul className="flex space-x-4">
           <li>
-            <Link to="/maybCardGames/solitaire" className="hover:underline">
+            <Link to="/maybCardGames/solitaire" className="hover:underline" viewTransition>
               Solitaire
             </Link>
           </li>
           <li>
-            <Link to="/maybCardGames/blackjack" className="hover:underline">
+            <Link to="/maybCardGames/blackjack" className="hover:underline" viewTransition>
               Blackjack
             </Link>
           </li>
           <li>
-            <Link to="/maybCardGames/" className="hover:underline">
+            <Link to="/maybCardGames/" className="hover:underline" viewTransition>
               More...
             </Link>
           </li>

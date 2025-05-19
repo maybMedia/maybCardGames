@@ -47,3 +47,42 @@ body {
 .animate-explode {
   animation: explode 1s ease-out forwards;
 }
+
+/* Flashy View Transition Animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: fade-slide-out;
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  animation-name: fade-slide-in;
+  z-index: 2;
+}
+
+@keyframes fade-slide-out {
+  from {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
