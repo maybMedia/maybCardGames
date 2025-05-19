@@ -2,7 +2,7 @@
   "name": "maybcardgames",
   "version": "1.0.0",
   "description": "A collection of card games.",
-  "homepage": "https://maybmedia.github.io/",
+  "homepage": "https://maybmedia.github.io/maybcardgames",
   "private": false,
   "type": "module",
   "scripts": {
@@ -10,7 +10,6 @@
     "deploy": "gh-pages -d build/client",
     "build": "react-router build",
     "dev": "vite",
-    "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
