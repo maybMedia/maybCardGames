@@ -171,14 +171,14 @@ export default function Blackjack() {
   }
 
   return (
-    <div className="flex flex-col items-center h-screen pt-16">
+    <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">
       <div className="container mx-auto flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold p-5">Blackjack</h1>
-        <div className="w-4/6 aspect-video bg-slate-600 flex flex-col justify-between rounded-2xl p-4 text-white relative">
+        <h1 className="text-2xl font-bold p-4 sm:p-5 text-center">Blackjack</h1>
+        <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video bg-slate-600 flex flex-col justify-between rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto">
           {playerHand.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <button
-                className="bg-blue-500 text-white max-w-48 px-4 py-2 rounded hover:bg-blue-400 hover:scale-105 transition duration-300 ease-in-out"
+                className="bg-blue-500 text-white w-full max-w-48 px-4 py-2 rounded hover:bg-blue-400 hover:scale-105 transition duration-300 ease-in-out"
                 onClick={() => {
                   setDrawnCard(null); // Reset animation
                   dealInitialCards();
@@ -190,10 +190,10 @@ export default function Blackjack() {
           ) : (
             <>
               {/* Dealer's Hand */}
-              <div className="flex flex-col items-center mb-4">
+              <div className="flex flex-col items-center mb-2 sm:mb-4">
                 <h2 className="text-lg font-bold">Dealer's Hand</h2>
                 <p className="">Score: {calculateScore(dealerHand)}</p>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
                   {dealerHand.map((card, index) => (
                     <div
                       key={index}
@@ -210,7 +210,7 @@ export default function Blackjack() {
               {/* Player's Hand */}
               <div className="flex flex-col items-center mt-auto">
                 <h2 className="text-lg font-bold">Your Hand</h2>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
                   {playerHand.map((card, index) => (
                     <div
                       key={index}
@@ -223,15 +223,15 @@ export default function Blackjack() {
                   ))}
                 </div>
                 <p className="mt-2">Score: {calculateScore(playerHand)}</p>
-                <div className="flex gap-4 mt-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 w-full justify-center items-center">
                   <button
-                    className="bg-blue-500 w-18 text-white py-2 rounded hover:bg-blue-600 transition duration-300 ease-in-out"
+                    className="bg-blue-500 w-full sm:w-24 text-white py-2 rounded hover:bg-blue-600 transition duration-300 ease-in-out"
                     onClick={hit}
                   >
                     Hit
                   </button>
                   <button
-                    className="bg-slate-400 w-18 text-white py-2 rounded hover:bg-slate-500 transition duration-300 ease-in-out"
+                    className="bg-slate-400 w-full sm:w-24 text-white py-2 rounded hover:bg-slate-500 transition duration-300 ease-in-out"
                     onClick={stand}
                   >
                     Stand
@@ -241,8 +241,8 @@ export default function Blackjack() {
             </>
           )}
           {message && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-lg font-bold mb-4">{message}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-700/80 rounded-2xl p-4">
+              <p className="text-lg font-bold mb-4 text-center">{message}</p>
               <button
                 className="bg-blue-300 text-white px-4 py-2 rounded hover:bg-blue-400 transition duration-300"
                 onClick={resetGame}
@@ -252,8 +252,8 @@ export default function Blackjack() {
             </div>
           )}
           {blackjackAnimation && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-4xl font-bold text-yellow-400 mb-4 animate-bounce">Blackjack!</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-700/80 rounded-2xl p-4">
+              <p className="text-4xl font-bold text-yellow-400 mb-4 animate-bounce text-center">Blackjack!</p>
               <button
                 className="bg-blue-300 text-white px-4 py-2 rounded hover:bg-blue-400 transition duration-300"
                 onClick={() => {
