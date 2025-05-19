@@ -16,6 +16,7 @@ export default function Blackjack() {
   const [blackjackAnimation, setBlackjackAnimation] = useState(false);
   const [drawnCard, setDrawnCard] = useState<string | null>(null); // Track the last drawn card
   const [bustAnimation, setBustAnimation] = useState<"player" | "dealer" | null>(null);
+  const [isDealing, setIsDealing] = useState(false); // Add this line
 
   function generateDeck() {
     const suits = ["♠", "♥", "♦", "♣"];
@@ -61,6 +62,7 @@ export default function Blackjack() {
     setPlayerHand([]);
     setDealerHand([]);
     setMessage("");
+    setIsDealing(true); // Set dealing state
 
     function drawCardForPlayer() {
       if (newPlayerHand.length < 2) {
@@ -89,6 +91,7 @@ export default function Blackjack() {
     function finalizeGameStart() {
       setDeck(newDeck);
       setDrawnCard(null); // Reset the drawn card animation
+      setIsDealing(false); // Cards have finished dealing
 
       if (isBlackjack(newDealerHand)) {
         setMessage("Dealer blackjack! You lose.");
@@ -101,7 +104,7 @@ export default function Blackjack() {
   }
 
   function hit() {
-    if (playerHand.length === 0) return;
+    if (playerHand.length === 0 || isDealing) return;
 
     const newDeck = [...deck];
     const newCard = newDeck.pop()!;
@@ -121,7 +124,7 @@ export default function Blackjack() {
   }
 
   function stand() {
-    if (playerHand.length === 0) return;
+    if (playerHand.length === 0 || isDealing) return;
 
     let dealerScore = calculateScore(dealerHand);
     let newDeck = [...deck];
@@ -178,11 +181,12 @@ export default function Blackjack() {
           {playerHand.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <button
-                className="bg-blue-500 text-white w-full max-w-48 px-4 py-2 rounded hover:bg-blue-400 hover:scale-105 transition duration-300 ease-in-out"
+                className="bg-blue-500 text-white w-full max-w-48 px-4 py-2 rounded hover:bg-blue-400 hover:scale-105 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
                   setDrawnCard(null); // Reset animation
                   dealInitialCards();
                 }}
+                disabled={isDealing}
               >
                 Start Game
               </button>
@@ -225,14 +229,16 @@ export default function Blackjack() {
                 <p className="mt-2">Score: {calculateScore(playerHand)}</p>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 w-full justify-center items-center">
                   <button
-                    className="bg-blue-500 w-full sm:w-24 text-white py-2 rounded hover:bg-blue-600 transition duration-300 ease-in-out"
+                    className="bg-blue-500 w-full sm:w-24 text-white py-2 rounded hover:bg-blue-600 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={hit}
+                    disabled={isDealing}
                   >
                     Hit
                   </button>
                   <button
-                    className="bg-slate-400 w-full sm:w-24 text-white py-2 rounded hover:bg-slate-500 transition duration-300 ease-in-out"
+                    className="bg-slate-400 w-full sm:w-24 text-white py-2 rounded hover:bg-slate-500 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={stand}
+                    disabled={isDealing}
                   >
                     Stand
                   </button>
