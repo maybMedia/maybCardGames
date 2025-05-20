@@ -70,6 +70,18 @@ export default function Navbar() {
             >
               Blackjack
             </Link>
+
+            <Link
+              to="/maybCardGames/naughtsAndCrosses"
+              className="relative px-2 py-1 font-medium text-white transition-colors duration-300
+                hover:text-blue-300
+                after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0 after:w-0 after:h-0.5 after:bg-blue-500 after:rounded-full
+                hover:after:w-full after:transition-all after:duration-300
+                hover:animate-bounce-short"
+              viewTransition
+            >
+              O's & X's
+            </Link>
           </li>
         </ul>
         {/* Hamburger for mobile */}
