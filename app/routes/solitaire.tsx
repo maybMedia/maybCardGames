@@ -64,13 +64,105 @@ function canMoveToTableau(card: Card, pile: Pile) {
   );
 }
 
+function getPilePosition(type: "tableau" | "foundation" | "waste", pile: number): { left: number; top: number } {
+  const el = document.getElementById(`${type}-pile-${pile}`);
+  console.log(el);
+  if (!el) return { left: 0, top: 0 };
+  const rect = el.getBoundingClientRect();
+  const parentRect = document.getElementById("game-board")!.getBoundingClientRect();
+  return {
+    left: rect.left - parentRect.left,
+    top: rect.top - parentRect.top,
+  };
+}
+
+function getDestinationOffset(type: "tableau" | "foundation", pile: number, tableau: Pile[], foundation: Pile[]): number {
+  if (type === "tableau") {
+    return tableau[pile].length * 24;
+  }
+  // For foundation, cards are stacked with no offset
+  return 0;
+}
+
+function MovingStackAnimation({
+  cards,
+  from,
+  to,
+  offset,
+  destOffset,
+}: {
+  cards: Card[];
+  from: { left: number; top: number };
+  to: { left: number; top: number };
+  offset: number;
+  destOffset: number;
+}) {
+  const [pos, setPos] = React.useState<{ left: number; top: number }>({
+    left: from.left,
+    top: from.top + offset,
+  });
+
+  React.useEffect(() => {
+    requestAnimationFrame(() => {
+      setPos({
+        left: to.left,
+        top: to.top + destOffset,
+      });
+    });
+  }, [to.left, to.top, destOffset]);
+
+  return (
+    <div
+      className="absolute z-50 pointer-events-none"
+      style={{
+        left: pos.left,
+        top: pos.top,
+        width: "3rem",
+        height: `${cards.length * 24 + 40}px`,
+        transition: "left 0.4s, top 0.4s",
+        willChange: "left, top",
+      }}
+    >
+      {cards.map((card, i) => (
+        <div
+          key={i}
+          className="w-12 h-16 rounded shadow-2xl absolute left-0"
+          style={{ top: `${i * 24}px` }}
+        >
+          <div className={`w-12 h-16 rounded flex items-center justify-center ${card.faceUp
+            ? `bg-white ${getCardColor(card)}`
+            : "bg-blue-400 bg-[repeating-linear-gradient(135deg,#3b82f6_0_8px,#2563eb_8px_16px)]"
+            }`}>
+            {card.faceUp ? (
+              <span className="font-bold text-lg flex items-center gap-0.5 select-none">
+                {card.value}
+                {card.suit}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Solitaire() {
   // State
   const [stock, setStock] = useState<Card[]>([]);
   const [waste, setWaste] = useState<Card[]>([]);
   const [tableau, setTableau] = useState<Pile[]>([]);
   const [foundation, setFoundation] = useState<Pile[]>([[], [], [], []]);
-  const [selected, setSelected] = useState<{ pile: "waste" | "tableau"; index: number; cardIndex: number } | null>(null);
+  const [selected, setSelected] = useState<{ pile: "waste" | "tableau" | "foundation"; index: number; cardIndex: number } | null>(null);
+
+  // Animation state
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [flippingCard, setFlippingCard] = useState<Card | null>(null);
+
+  // Movement state
+  const [isMoving, setIsMoving] = useState(false);
+  const [movingCards, setMovingCards] = useState<Card[] | null>(null);
+  const [moveFrom, setMoveFrom] = useState<{ type: "tableau" | "waste" | "foundation"; pile: number; cardIndex: number } | null>(null);
+  const [moveTo, setMoveTo] = useState<{ type: "tableau" | "foundation"; pile: number } | null>(null);
 
   // Initial deal
   React.useEffect(() => {
@@ -103,11 +195,32 @@ export default function Solitaire() {
       return;
     }
     const drawn = stock[stock.length - 1];
-    setStock(stock.slice(0, -1));
-    setWaste([...waste, { ...drawn, faceUp: true }]);
+    setFlippingCard({ ...drawn, faceUp: false });
+    setIsFlipping(true);
+    // Delay moving the card to waste until after animation
+    setTimeout(() => {
+      setStock(prev => prev.slice(0, -1));
+      setWaste(prev => [...prev, { ...drawn, faceUp: true }]);
+      setIsFlipping(false);
+      setFlippingCard(null);
+    }, 400); // Animation duration (ms)
   }
 
   function handleCardClick(pileType: "waste" | "tableau", pileIndex: number, cardIndex: number) {
+    if (pileType === "waste") {
+      // If already selected, deselect
+      if (
+        selected &&
+        selected.pile === "waste" &&
+        selected.index === pileIndex &&
+        selected.cardIndex === cardIndex
+      ) {
+        setSelected(null);
+        return;
+      }
+      setSelected({ pile: "waste", index: pileIndex, cardIndex });
+      return;
+    }
     if (pileType === "tableau") {
       const card = tableau[pileIndex]?.[cardIndex];
       // If the pile is empty, card will be undefined
@@ -170,28 +283,29 @@ export default function Solitaire() {
       }
     }
     if (selected) {
-      // Try to move selected card(s) to this pile
       if (pileType === "tableau") {
         const from = selected;
         if (from.pile === "tableau" && from.index === pileIndex) {
           setSelected(null);
           return;
         }
-        const movingCards =
-          from.pile === "waste"
-            ? [waste[waste.length - 1]]
-            : tableau[from.index].slice(from.cardIndex);
+        let movingCards: Card[] = [];
+        if (from.pile === "waste") {
+          movingCards = [waste[waste.length - 1]];
+        } else if (from.pile === "tableau") {
+          movingCards = tableau[from.index].slice(from.cardIndex);
+        } else if (from.pile === "foundation") {
+          movingCards = [foundation[from.index][foundation[from.index].length - 1]];
+        }
         if (canMoveToTableau(movingCards[0], tableau[pileIndex])) {
-          // Move cards
-          if (from.pile === "waste") {
-            setWaste(waste.slice(0, -1));
-          } else {
-            // Flip the card underneath if needed
+          // Remove moving cards from the source pile immediately
+          if (from.pile === "tableau") {
             setTableau(prevTableau => {
               const newTableau = prevTableau.map((p, i) =>
                 i === from.index ? p.slice(0, from.cardIndex) : p
               );
-              if (from.pile === "tableau" && newTableau[from.index].length > 0) {
+              // Flip the new top card if needed
+              if (newTableau[from.index].length > 0) {
                 const lastIdx = newTableau[from.index].length - 1;
                 if (!newTableau[from.index][lastIdx].faceUp) {
                   newTableau[from.index][lastIdx] = {
@@ -202,11 +316,42 @@ export default function Solitaire() {
               }
               return newTableau;
             });
+          } else if (from.pile === "waste") {
+            setWaste(waste.slice(0, -1));
+          } else if (from.pile === "foundation") {
+            setFoundation(prevFoundation =>
+              prevFoundation.map((p, i) =>
+                i === from.index ? p.slice(0, -1) : p
+              )
+            );
           }
-          setTableau(t =>
-            t.map((p, i) => (i === pileIndex ? [...p, ...movingCards] : p))
-          );
-          setSelected(null);
+
+          // Start animation
+          setIsMoving(true);
+          setMovingCards(movingCards);
+          setMoveFrom({
+            type: from.pile,
+            pile: from.index,
+            cardIndex:
+              from.pile === "tableau"
+                ? from.cardIndex
+                : from.pile === "waste"
+                ? waste.length - 1
+                : foundation[from.index].length - 1,
+          });
+          setMoveTo({ type: "tableau", pile: pileIndex });
+
+          setTimeout(() => {
+            setTableau(t =>
+              t.map((p, i) => (i === pileIndex ? [...p, ...movingCards] : p))
+            );
+            setSelected(null);
+            setIsMoving(false);
+            setMovingCards(null);
+            setMoveFrom(null);
+            setMoveTo(null);
+          }, 400);
+          return;
         }
       }
     } else {
@@ -217,27 +362,57 @@ export default function Solitaire() {
   function handleFoundationClick(foundationIndex: number) {
     if (!selected) return;
     let movingCard: Card | null = null;
+    let fromTableauIndex: number | null = null;
     if (selected.pile === "waste") {
       movingCard = waste[waste.length - 1];
     } else if (selected.pile === "tableau") {
       const pile = tableau[selected.index];
       if (pile.length - 1 !== selected.cardIndex) return; // Only top card can move to foundation
       movingCard = pile[selected.cardIndex];
+      fromTableauIndex = selected.index;
     }
     if (movingCard && canMoveToFoundation(movingCard, foundation[foundationIndex])) {
+      // Remove from source immediately
       if (selected.pile === "waste") {
         setWaste(waste.slice(0, -1));
       } else if (selected.pile === "tableau") {
-        setTableau(tableau.map((p, i) =>
-          i === selected.index ? p.slice(0, -1) : p
-        ));
+        setTableau(prevTableau => {
+          const newTableau = prevTableau.map((p, i) =>
+            i === selected.index ? p.slice(0, -1) : p
+          );
+          const pile = newTableau[selected.index];
+          if (pile.length > 0 && !pile[pile.length - 1].faceUp) {
+            pile[pile.length - 1] = {
+              ...pile[pile.length - 1],
+              faceUp: true,
+            };
+          }
+          return newTableau;
+        });
       }
-      setFoundation(f =>
-        f.map((pile, i) =>
-          i === foundationIndex ? [...pile, { ...movingCard!, faceUp: true }] : pile
-        )
-      );
-      setSelected(null);
+
+      // Start animation
+      setIsMoving(true);
+      setMovingCards([movingCard]);
+      setMoveFrom({
+        type: selected.pile,
+        pile: selected.pile === "tableau" ? selected.index : 0,
+        cardIndex: selected.pile === "tableau" ? selected.cardIndex : waste.length - 1,
+      });
+      setMoveTo({ type: "foundation", pile: foundationIndex });
+
+      setTimeout(() => {
+        setFoundation(f =>
+          f.map((pile, i) =>
+            i === foundationIndex ? [...pile, { ...movingCard!, faceUp: true }] : pile
+          )
+        );
+        setSelected(null);
+        setIsMoving(false);
+        setMovingCards(null);
+        setMoveFrom(null);
+        setMoveTo(null);
+      }, 400);
     }
   }
 
@@ -246,10 +421,37 @@ export default function Solitaire() {
     <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 sm:p-5 text-center">Solitaire</h1>
-        <h1 className="text-3xl font-bold p-2 text-red-500 text-center">Work In Progress</h1>
-        <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video bg-slate-600 flex flex-col justify-between rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto">
+        <div id="game-board" className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video bg-slate-600 flex flex-col justify-between rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto">
           {/* Top Row: Stock, Waste, Foundations */}
-          <div className="flex justify-between mb-4">
+          <div className="flex justify-between mb-4 relative">
+            {/* Flipping Card Animation */}
+            {isFlipping && flippingCard && (
+              <div
+                className="absolute z-50"
+                style={{
+                  width: "3rem",
+                  height: "4rem",
+                  left: "0rem", // Stock position
+                  top: "0rem",
+                  pointerEvents: "none",
+                  // Slide to the right (adjust 56px if your gap/width changes)
+                  transform: "translateX(56px)", // 56px = 3rem (stock) + 0.5rem (gap)
+                  animation: "slide-flip 0.4s forwards",
+                }}
+              >
+                <div className="flip-card w-12 h-16">
+                  <div className="flip-card-inner animate-flip">
+                    <div className="flip-card-front w-12 h-16 rounded bg-blue-400 bg-[repeating-linear-gradient(135deg,#3b82f6_0_8px,#2563eb_8px_16px)] shadow-md flex items-center justify-center" />
+                    <div className="flip-card-back w-12 h-16 rounded bg-white shadow-md flex items-center justify-center">
+                      <span className={getCardColor(flippingCard)}>
+                        {flippingCard.value}
+                        {flippingCard.suit}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Stock and Waste */}
             <div className="flex gap-2">
               <button
@@ -259,19 +461,24 @@ export default function Solitaire() {
                     : "bg-blue-200"
                 }`}
                 onClick={drawFromStock}
-                disabled={stock.length === 0 && waste.length === 0}
+                disabled={stock.length === 0 && waste.length === 0 || isFlipping}
                 title="Draw from stock"
               >
                 {stock.length > 0 ? "🂠" : "↺"}
               </button>
+              {/* Waste: show nothing if no card has been drawn yet, but keep the space */}
               <div
-                className={`w-12 h-16 bg-white rounded shadow-md flex items-center justify-center ${
-                  selected?.pile === "waste" ? "ring-4 ring-blue-400" : ""
+                className={`w-12 h-16 rounded flex items-center justify-center select-none transition-all duration-150 ${
+                  waste.length > 0
+                    ? `bg-white shadow-md ${selected?.pile === "waste" ? "ring-4 ring-blue-400 transition-all duration-150" : ""}`
+                    : "bg-gradient-to-br from-slate-300 to-blue-200 shadow-inner border-2 border-dashed border-blue-400"
                 }`}
                 onClick={() =>
                   waste.length > 0 && handleCardClick("waste", 0, waste.length - 1)
                 }
                 title="Waste"
+                style={{ minWidth: "3rem" }}
+                id="waste-pile-0"
               >
                 {waste.length > 0 ? (
                   <span className={getCardColor(waste[waste.length - 1])}>
@@ -283,31 +490,47 @@ export default function Solitaire() {
             </div>
             {/* Foundations */}
             <div className="flex gap-2">
-              {foundation.map((pile, i) => (
-                <div
-                  key={i}
-                  className={`w-12 h-16 bg-white rounded shadow-md flex items-center justify-center cursor-pointer ${
-                    selected ? "hover:ring-2 hover:ring-yellow-400" : ""
-                  }`}
-                  onClick={() => handleFoundationClick(i)}
-                  title="Foundation"
-                >
-                  {pile.length > 0 ? (
-                    <span className={getCardColor(pile[pile.length - 1])}>
-                      {pile[pile.length - 1].value}
-                      {pile[pile.length - 1].suit}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400">A</span>
-                  )}
-                </div>
-              ))}
+              {foundation.map((pile, i) => {
+                const isSelected =
+                  selected &&
+                  selected.pile === "foundation" &&
+                  selected.index === i &&
+                  selected.cardIndex === pile.length - 1;
+                return (
+                  <div
+                    key={i}
+                    id={`foundation-pile-${i}`}
+                    className={`w-12 h-16 bg-white rounded shadow-md flex items-center justify-center cursor-pointer select-none ${
+                      isSelected ? "ring-4 ring-blue-400 transition-all duration-150" : ""
+                    } ${selected ? "hover:ring-2 hover:ring-yellow-400" : ""}`}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelected(null);
+                      } else if (selected) {
+                        handleFoundationClick(i);
+                      } else if (pile.length > 0) {
+                        setSelected({ pile: "foundation", index: i, cardIndex: pile.length - 1 });
+                      }
+                    }}
+                    title="Foundation"
+                  >
+                    {pile.length > 0 ? (
+                      <span className={getCardColor(pile[pile.length - 1])}>
+                        {pile[pile.length - 1].value}
+                        {pile[pile.length - 1].suit}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">A</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
           {/* Tableau */}
           <div className="flex gap-2 justify-center items-start">
             {tableau.map((pile, pileIdx) => (
-              <div key={pileIdx} className="flex flex-col items-center min-w-[3rem]">
+              <div key={pileIdx} id={`tableau-pile-${pileIdx}`} className="flex flex-col items-center min-w-[3rem]">
                 {pile.length === 0 ? (
                   <div
                     className={`w-12 h-16 bg-slate-400 rounded mb-1 cursor-pointer border-2 border-dashed border-blue-400 hover:border-blue-600 transition`}
@@ -326,38 +549,69 @@ export default function Solitaire() {
                     title="Move King here"
                   />
                 ) : (
-                  pile.map((card, cardIdx) => (
-                    <div
-                      key={cardIdx}
-                      className={`w-12 h-16 rounded shadow-md flex items-center justify-center mb-[-2.2rem] relative z-[${cardIdx}] ${
-                        card.faceUp
-                          ? `bg-white cursor-pointer ${getCardColor(card)} ${
-                              selected &&
-                              selected.pile === "tableau" &&
-                              selected.index === pileIdx &&
-                              selected.cardIndex === cardIdx
-                                ? "ring-4 ring-blue-400"
-                                : ""
-                            }`
-                          : "bg-blue-400 bg-[repeating-linear-gradient(135deg,#3b82f6_0_8px,#2563eb_8px_16px)]"
-                      }`}
-                      style={{ marginTop: cardIdx === 0 ? 0 : -48 }}
-                      onClick={() =>
-                        card.faceUp && handleCardClick("tableau", pileIdx, cardIdx)
-                      }
-                    >
-                      {card.faceUp ? (
-                        <>
-                          {card.value}
-                          {card.suit}
-                        </>
-                      ) : null}
-                    </div>
-                  ))
+                  // Render the pile so the first card is at the top and the last (topmost) card is at the bottom
+                  [...pile].map((card, cardIdx) => {
+                    const isTopCard = cardIdx === pile.length - 1;
+                    // Highlight cards above the selected card in the same tableau pile
+                    const isHighlighted =
+                      selected &&
+                      selected.pile === "tableau" &&
+                      selected.index === pileIdx &&
+                      cardIdx > selected.cardIndex;
+                    return (
+                      <div
+                        key={cardIdx}
+                        className={`w-12 h-16 rounded shadow-2xl border-1 flex items-center justify-center ${cardIdx !== 0 ? "mt-[-42px]" : ""} relative z-[${cardIdx}] ${
+                          card.faceUp
+                            ? `bg-white cursor-pointer ${getCardColor(card)} ${
+                                selected &&
+                                selected.pile === "tableau" &&
+                                selected.index === pileIdx &&
+                                selected.cardIndex === cardIdx
+                                  ? "ring-4 ring-blue-400 transition-all duration-150"
+                                  : ""
+                              } ${isHighlighted ? "ring-4 ring-yellow-400 transition-all duration-200" : ""}`
+                            : "bg-blue-400 bg-[repeating-linear-gradient(135deg,#3b82f6_0_8px,#2563eb_8px_16px)]"
+                        }`}
+                        onClick={() =>
+                          card.faceUp && handleCardClick("tableau", pileIdx, cardIdx)
+                        }
+                      >
+                        {card.faceUp ? (
+                          isTopCard ? (
+                            <span className="font-bold text-lg flex items-center gap-0.5 select-none">
+                              {card.value}
+                              {card.suit}
+                            </span>
+                          ) : (
+                            <span className="absolute top-1 left-1 text-xs font-bold flex items-center gap-0.5 pointer-events-none select-none">
+                              {card.value}
+                              {card.suit}
+                            </span>
+                          )
+                        ) : null}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             ))}
           </div>
+          {isMoving && movingCards && moveFrom && moveTo && (
+            <MovingStackAnimation
+              cards={movingCards}
+              from={
+                moveFrom.type === "tableau"
+                  ? getPilePosition("tableau", moveFrom.pile)
+                  : moveFrom.type === "waste"
+                  ? getPilePosition("waste", 0)
+                  : getPilePosition("foundation", moveFrom.pile)
+              }
+              to={getPilePosition(moveTo.type, moveTo.pile)}
+              offset={moveFrom.type === "tableau" ? moveFrom.cardIndex : 0}
+              destOffset={getDestinationOffset(moveTo.type, moveTo.pile, tableau, foundation)}
+            />
+          )}
           {/* Controls */}
           <div className="flex justify-center mt-6">
             <button
