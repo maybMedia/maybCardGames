@@ -166,6 +166,16 @@ export default function Solitaire() {
 
   // Info Window
   const [showInfo, setShowInfo] = useState(false);
+  const [infoVisible, setInfoVisible] = useState(false);
+
+  React.useEffect(() => {
+    if (showInfo) {
+      // Animate in after mount
+      setTimeout(() => setInfoVisible(true), 10);
+    } else {
+      setInfoVisible(false);
+    }
+  }, [showInfo]);
 
   // Initial deal
   React.useEffect(() => {
@@ -638,12 +648,22 @@ export default function Solitaire() {
 
       {/* Info Modal */}
       {showInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white text-black rounded-xl shadow-2xl p-6 max-w-md w-full relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 transition-opacity duration-300">
+          <div
+            className={`
+              bg-white text-black rounded-xl shadow-2xl p-6 max-w-md w-full relative
+              transform transition-all duration-300
+              ${infoVisible ? "scale-100 opacity-100" : "scale-90 opacity-0"}
+            `}
+            style={{ transitionProperty: "transform, opacity" }}
+          >
             <button
               className="absolute top-2 right-3 text-2xl text-gray-400 hover:text-gray-700"
               aria-label="Close"
-              onClick={() => setShowInfo(false)}
+              onClick={() => {
+                setInfoVisible(false);
+                setTimeout(() => setShowInfo(false), 300); // match duration-300
+              }}
             >
               ×
             </button>
@@ -659,7 +679,10 @@ export default function Solitaire() {
             <div className="mt-4 text-right">
               <button
                 className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition"
-                onClick={() => setShowInfo(false)}
+                onClick={() => {
+                  setInfoVisible(false);
+                  setTimeout(() => setShowInfo(false), 300); // match duration-300
+                }}
               >
                 Close
               </button>
