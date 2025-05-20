@@ -4,6 +4,12 @@ import { useState, useRef, useEffect } from "react";
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Animate navbar on mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -21,20 +27,47 @@ export default function Navbar() {
   }, [menuOpen]);
 
   return (
-    <nav className="md:fixed md:top-0 md:left-0 w-full h-16 bg-slate-800 text-white p-4 z-50">
+    <nav
+      className={`
+        md:fixed md:top-0 md:left-0 w-full h-16 bg-slate-800 text-white p-4 z-50
+        transition-all duration-500 ease-out
+        ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"}
+      `}
+      style={{ willChange: "opacity, transform" }}
+    >
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/maybCardGames/" className="text-lg font-bold" viewTransition>
+        <Link
+          to="/maybCardGames/"
+          className="text-lg font-bold hover:animate-wiggle"
+          viewTransition
+        >
           maybCardGames
         </Link>
         {/* Desktop links */}
         <ul className="hidden sm:flex space-x-4">
           <li>
-            <Link to="/maybCardGames/solitaire" className="hover:underline" viewTransition>
+            <Link
+              to="/maybCardGames/solitaire"
+              className="relative px-2 py-1 font-medium text-white transition-colors duration-300
+                hover:text-blue-300
+                after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0 after:w-0 after:h-0.5 after:bg-blue-500 after:rounded-full
+                hover:after:w-full after:transition-all after:duration-300
+                hover:animate-bounce-short"
+              viewTransition
+            >
               Solitaire
             </Link>
           </li>
           <li>
-            <Link to="/maybCardGames/blackjack" className="hover:underline" viewTransition>
+            <Link
+              to="/maybCardGames/blackjack"
+              className="relative px-2 py-1 font-medium text-white transition-colors duration-300
+                hover:text-blue-300
+                after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0 after:w-0 after:h-0.5 after:bg-blue-500 after:rounded-full
+                hover:after:w-full after:transition-all after:duration-300
+                hover:animate-bounce-short"
+              viewTransition
+            >
               Blackjack
             </Link>
           </li>
