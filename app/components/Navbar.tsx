@@ -70,7 +70,8 @@ export default function Navbar() {
             >
               Blackjack
             </Link>
-
+          </li>
+          <li>
             <Link
               to="/maybCardGames/naughtsAndCrosses"
               className="relative px-2 py-1 font-medium text-white transition-colors duration-300
@@ -144,6 +145,17 @@ export default function Navbar() {
                   onClick={() => setMenuOpen(false)}
                 >
                   Blackjack
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/maybCardGames/naughtsAndCrosses"
+                  className="block px-4 py-2 hover:bg-slate-700"
+                  viewTransition
+                  onClick={() => setMenuOpen(false)}
+                >
+                  O's & X's
                 </Link>
               </li>
             </ul>
