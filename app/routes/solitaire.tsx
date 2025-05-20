@@ -118,7 +118,7 @@ function MovingStackAnimation({
         left: pos.left,
         top: pos.top,
         width: "3rem",
-        height: `${cards.length * 24 + 40}px`,
+        height: `${(cards.length - 1) * 42 + 64}px`, // 64px is the card height (h-16)
         transition: "left 0.4s, top 0.4s",
         willChange: "left, top",
       }}
@@ -608,7 +608,7 @@ export default function Solitaire() {
                   : getPilePosition("foundation", moveFrom.pile)
               }
               to={getPilePosition(moveTo.type, moveTo.pile)}
-              offset={moveFrom.type === "tableau" ? moveFrom.cardIndex : 0}
+              offset={moveFrom.type === "tableau" ? moveFrom.cardIndex * 42 : 0}
               destOffset={getDestinationOffset(moveTo.type, moveTo.pile, tableau, foundation)}
             />
           )}
