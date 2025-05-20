@@ -41,7 +41,7 @@ export default function Navbar() {
           className="text-lg font-bold hover:animate-wiggle"
           viewTransition
         >
-          maybCardGames
+          maybGames
         </Link>
         {/* Desktop links */}
         <ul className="hidden sm:flex space-x-4">
