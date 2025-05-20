@@ -1,6 +1,6 @@
-# mayb Card Games
+# mayb Games
 
-mayb Card Games is a modern web app that lets you play classic card games like Blackjack and Solitaire right in your browser. Built with React, React Router, and Tailwind CSS, it features a sleek UI, smooth card animations, and responsive design for desktop and mobile.
+mayb Games is a modern web app that lets you play classic games like Blackjack and Solitaire right in your browser. Built with React, React Router, and Tailwind CSS, it features a sleek UI, smooth card animations, and responsive design for desktop and mobile.
 
 ## Features
 
