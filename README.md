@@ -6,8 +6,9 @@ mayb Card Games is a modern web app that lets you play classic card games like B
 
 - **Blackjack**: Play against a dealer with animated card draws and win/loss detection.
 - **Solitaire**: A single-player strategy card game with simple, modern graphics.
-- **Responsive Design**: Looks great on all devices.
-- **Animated UI**: Smooth card draw and bust animations for an engaging experience.
+  - Move cards between tableau, foundation, and waste piles with smooth stack animations.
+- **Responsive Design**: Optimized for all devices, with improved mobile UI (smaller cards, scrollable board, touch-friendly controls).
+- **Animated UI**: Smooth card draw, stack movement, and modal transitions for an engaging experience.
 
 ## Getting Started
 
@@ -45,6 +46,21 @@ npm run build
 ```
 
 The output will be in the `build/` directory.
+
+#### Deploying to GitHub Pages
+
+To support client-side routing (so subroutes like `/maybCardGames/blackjack` work), the build process copies `index.html` to `404.html` in the build output.  
+**Make sure your deploy script includes:**
+
+```sh
+# For Unix/macOS
+cp build/client/index.html build/client/404.html
+
+# For Windows
+copy build\client\index.html build\client\404.html
+```
+
+Or use a cross-platform tool like `cpx`.
 
 ### Run in Docker
 

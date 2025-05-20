@@ -6,7 +6,7 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "predeploy": "npm run build && cpx build/client/index.html build/client/404.html",
+    "predeploy": "npm run build && copy build\\client\\index.html build\\client\\404.html",
     "deploy": "gh-pages -d build/client",
     "build": "react-router build",
     "dev": "vite",
