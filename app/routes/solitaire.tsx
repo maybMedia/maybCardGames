@@ -164,6 +164,9 @@ export default function Solitaire() {
   const [moveFrom, setMoveFrom] = useState<{ type: "tableau" | "waste" | "foundation"; pile: number; cardIndex: number } | null>(null);
   const [moveTo, setMoveTo] = useState<{ type: "tableau" | "foundation"; pile: number } | null>(null);
 
+  // Info Window
+  const [showInfo, setShowInfo] = useState(false);
+
   // Initial deal
   React.useEffect(() => {
     startNewGame();
@@ -623,6 +626,47 @@ export default function Solitaire() {
           </div>
         </div>
       </div>
+      {/* Info Button */}
+      <button
+        className="fixed sm:absolute bottom-6 right-6 bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-lg hover:bg-blue-600 transition z-50"
+        style={{ lineHeight: 1 }}
+        aria-label="How to play"
+        onClick={() => setShowInfo(true)}
+      >
+        ?
+      </button>
+
+      {/* Info Modal */}
+      {showInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white text-black rounded-xl shadow-2xl p-6 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-3 text-2xl text-gray-400 hover:text-gray-700"
+              aria-label="Close"
+              onClick={() => setShowInfo(false)}
+            >
+              ×
+            </button>
+            <h2 className="text-xl font-bold mb-2">How to Play Solitaire</h2>
+            <ul className="list-disc pl-5 space-y-1 text-base">
+              <li>Move cards to build up four foundation piles by suit from Ace to King.</li>
+              <li>Cards in the tableau must be placed in descending order and alternating colors.</li>
+              <li>Only Kings can be moved to empty tableau spaces.</li>
+              <li>Click the stock to draw cards to the waste pile.</li>
+              <li>You can move cards from the waste, tableau, or foundation if the move is valid.</li>
+              <li>To win, move all cards to the foundation piles.</li>
+            </ul>
+            <div className="mt-4 text-right">
+              <button
+                className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition"
+                onClick={() => setShowInfo(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
