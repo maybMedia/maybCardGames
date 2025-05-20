@@ -6,7 +6,7 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "predeploy": "npm run build && copy build\\client\\index.html build\\client\\404.html",
+    "predeploy": "npm run build && npx rimraf build\\client\\404.html && copy build\\client\\index.html build\\client\\404.html",
     "deploy": "gh-pages -d build/client",
     "build": "react-router build",
     "dev": "vite",
@@ -28,6 +28,7 @@
     "@types/react-dom": "^19.1.2",
     "cpx": "^1.5.0",
     "gh-pages": "^6.3.0",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
