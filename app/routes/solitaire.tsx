@@ -164,6 +164,11 @@ export default function Solitaire() {
   const [moveFrom, setMoveFrom] = useState<{ type: "tableau" | "waste" | "foundation"; pile: number; cardIndex: number } | null>(null);
   const [moveTo, setMoveTo] = useState<{ type: "tableau" | "foundation"; pile: number } | null>(null);
 
+  // Animation state for win
+  const [isWin, setIsWin] = useState(false);
+  const [waterfallCards, setWaterfallCards] = useState<Card[]>([]);
+  const [waterfallIndex, setWaterfallIndex] = useState(0);
+
   // Info Window
   const [showInfo, setShowInfo] = useState(false);
   const [infoVisible, setInfoVisible] = useState(false);
@@ -182,6 +187,31 @@ export default function Solitaire() {
     startNewGame();
     // eslint-disable-next-line
   }, []);
+
+  // Detect win
+  React.useEffect(() => {
+    if (
+      foundation.every(pile => pile.length === 13) &&
+      tableau.every(pile => pile.length === 0) &&
+      !isWin
+    ) {
+      // Gather all cards for waterfall
+      const allCards: Card[] = [];
+      foundation.forEach(pile => pile.forEach(card => allCards.push(card)));
+      setIsWin(true);
+      setWaterfallCards(allCards);
+      setWaterfallIndex(0);
+    }
+  }, [foundation, tableau, isWin]);
+
+  // Waterfall animation effect
+  React.useEffect(() => {
+    if (!isWin || waterfallIndex >= waterfallCards.length) return;
+    const timeout = setTimeout(() => {
+      setWaterfallIndex(i => i + 1);
+    }, 80);
+    return () => clearTimeout(timeout);
+  }, [isWin, waterfallIndex, waterfallCards.length]);
 
   function startNewGame() {
     const deck = shuffle(generateDeck());
@@ -429,6 +459,36 @@ export default function Solitaire() {
     }
   }
 
+  // Waterfall animation component
+  function Waterfall() {
+    if (!isWin) return null;
+    return (
+      <div className="pointer-events-none fixed inset-0 z-50 flex items-end justify-center">
+        <div className="relative w-full h-full">
+          {waterfallCards.slice(0, waterfallIndex).map((card, i) => (
+            <div
+              key={i}
+              className="absolute left-1/2"
+              style={{
+                transform: `translateX(-50%) translateY(${i * 24}px) rotate(${(i % 2 === 0 ? 1 : -1) * (5 + (i % 4))}deg)`,
+                bottom: `${10 + (waterfallCards.length - i) * 2}px`,
+                zIndex: 1000 + i,
+                transition: "transform 0.3s, bottom 0.3s",
+              }}
+            >
+              <div className={`w-12 h-16 rounded shadow-2xl flex items-center justify-center bg-white ${getCardColor(card)}`}>
+                <span className="font-bold text-lg flex items-center gap-0.5 select-none">
+                  {card.value}
+                  {card.suit}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // UI
   return (
     <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">
@@ -629,11 +689,18 @@ export default function Solitaire() {
           <div className="flex justify-center mt-6">
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-400 transition duration-300"
-              onClick={startNewGame}
+              onClick={() => {
+                setIsWin(false);
+                setWaterfallCards([]);
+                setWaterfallIndex(0);
+                startNewGame();
+              }}
             >
               New Game
             </button>
           </div>
+          {/* Waterfall animation overlay */}
+          {isWin && <Waterfall />}
         </div>
       </div>
       {/* Info Button */}
