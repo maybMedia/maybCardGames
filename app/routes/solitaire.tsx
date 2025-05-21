@@ -462,18 +462,52 @@ export default function Solitaire() {
   // Waterfall animation component
   function Waterfall() {
     if (!isWin) return null;
+
+    // Calculate starting positions for each foundation pile
+    const foundationPositions = [0, 1, 2, 3].map(i => {
+      const el = typeof window !== "undefined" ? document.getElementById(`foundation-pile-${i}`) : null;
+      if (!el) return { left: window.innerWidth / 2, top: window.innerHeight / 2 };
+      const rect = el.getBoundingClientRect();
+      return {
+        left: rect.left + rect.width / 2,
+        top: rect.top + rect.height / 2,
+      };
+    });
+
+    // Get the parent board position for absolute offset
+    const boardEl = typeof window !== "undefined" ? document.getElementById("game-board") : null;
+    const boardRect = boardEl ? boardEl.getBoundingClientRect() : { left: 0, top: 0 };
+
+    // Group cards by foundation pile
+    let pileIdx = 0;
+    const pileCards = [[], [], [], []] as Card[][];
+    for (let i = 0; i < waterfallCards.length; ++i) {
+      pileCards[pileIdx].push(waterfallCards[i]);
+      pileIdx = (pileIdx + 1) % 4;
+    }
+
+    // Flatten for animation order, but keep track of which pile and which card in pile
+    const animCards: { card: Card; pile: number; idx: number }[] = [];
+    for (let p = 0; p < 4; ++p) {
+      for (let i = 0; i < pileCards[p].length; ++i) {
+        animCards.push({ card: pileCards[p][i], pile: p, idx: i });
+      }
+    }
+
     return (
-      <div className="pointer-events-none fixed inset-0 z-50 flex items-end justify-center">
-        <div className="relative w-full h-full">
-          {waterfallCards.slice(0, waterfallIndex).map((card, i) => (
+      <div className="pointer-events-none fixed inset-0 z-50">
+        {animCards.slice(0, waterfallIndex).map(({ card, pile, idx }, i) => {
+          const pos = foundationPositions[pile];
+          return (
             <div
               key={i}
-              className="absolute left-1/2"
+              className="absolute"
               style={{
-                transform: `translateX(-50%) translateY(${i * 24}px) rotate(${(i % 2 === 0 ? 1 : -1) * (5 + (i % 4))}deg)`,
-                bottom: `${10 + (waterfallCards.length - i) * 2}px`,
+                left: pos.left - boardRect.left - 24, // 24 = half card width
+                top: pos.top - boardRect.top - 32 + idx * 12, // 32 = half card height, stagger down
+                transform: `rotate(${(i % 2 === 0 ? 1 : -1) * (5 + (i % 4))}deg)`,
                 zIndex: 1000 + i,
-                transition: "transform 0.3s, bottom 0.3s",
+                transition: "transform 0.3s, top 0.3s, left 0.3s",
               }}
             >
               <div className={`w-12 h-16 rounded shadow-2xl flex items-center justify-center bg-white ${getCardColor(card)}`}>
@@ -483,8 +517,8 @@ export default function Solitaire() {
                 </span>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     );
   }
