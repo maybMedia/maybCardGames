@@ -14,6 +14,29 @@ body {
   }
 }
 
+/* Webkit browsers */
+.main-scroll-area {
+  overflow-y: auto;
+}
+
+.main-scroll-area::-webkit-scrollbar {
+  width: 10px;
+  background: #101828;
+}
+.main-scroll-area::-webkit-scrollbar-thumb {
+  background: #101828;
+  border-radius: 8px;
+  border: 2px solid #101828;
+}
+.main-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #155dfc;
+}
+/* Firefox */
+.main-scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: #6bb9f8 rgba(0, 0, 0, 0);
+}
+
 @keyframes draw {
   0% {
     transform: scale(0.5) translateY(-50px);
