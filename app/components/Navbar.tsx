@@ -1,10 +1,43 @@
 import { Link } from "react-router";
 import { useState, useRef, useEffect } from "react";
 
+const CATEGORIES = [
+  {
+    label: "Card Games",
+    games: [
+      { label: "Solitaire", to: "/maybCardGames/solitaire" },
+      { label: "Blackjack", to: "/maybCardGames/blackjack" },
+    ],
+  },
+  {
+    label: "Single Player Games",
+    games: [
+      { label: "O's & X's", to: "/maybCardGames/naughtsAndCrosses" },
+      { label: "Snake", to: "/maybCardGames/snake" },
+      { label: "Solitaire", to: "/maybCardGames/solitaire" },
+      { label: "Blackjack", to: "/maybCardGames/blackjack" },
+    ],
+  },
+  {
+    label: "Two Player Games",
+    games: [
+      { label: "O's & X's", to: "/maybCardGames/naughtsAndCrosses" },
+    ],
+  },
+];
+
+// Helper to sort games alphabetically by label
+function getSortedGames(games: { label: string; to: string }[]) {
+  return [...games].sort((a, b) => a.label.localeCompare(b.label));
+}
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Track which category is open (for desktop hover or mobile tap)
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
 
   // Animate navbar on mount
   useEffect(() => {
@@ -20,11 +53,19 @@ export default function Navbar() {
         !menuRef.current.contains(event.target as Node)
       ) {
         setMenuOpen(false);
+        setOpenCategory(null);
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
+
+  // Helper: handle tap on mobile for category
+  function handleCategoryClick(label: string) {
+    if (window.innerWidth < 640) {
+      setOpenCategory((prev) => (prev === label ? null : label));
+    }
+  }
 
   return (
     <nav
@@ -43,53 +84,58 @@ export default function Navbar() {
         >
           maybGames
         </Link>
-        {/* Desktop links */}
-        <ul className="hidden sm:flex space-x-4">
-          <li>
-            <Link
-              to="/maybCardGames/solitaire"
-              className="relative px-2 py-1 font-medium text-white transition-colors duration-300
-                hover:text-blue-300
-                after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0 after:w-0 after:h-0.5 after:bg-blue-500 after:rounded-full
-                hover:after:w-full after:transition-all after:duration-300
-                hover:animate-bounce-short"
-              viewTransition
+        {/* Desktop categories */}
+        <ul className="hidden sm:flex space-x-6">
+          {CATEGORIES.map((cat) => (
+            <li
+              key={cat.label}
+              className="relative"
+              onMouseEnter={() => setOpenCategory(cat.label)}
             >
-              Solitaire
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/maybCardGames/blackjack"
-              className="relative px-2 py-1 font-medium text-white transition-colors duration-300
-                hover:text-blue-300
-                after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0 after:w-0 after:h-0.5 after:bg-blue-500 after:rounded-full
-                hover:after:w-full after:transition-all after:duration-300
-                hover:animate-bounce-short"
-              viewTransition
-            >
-              Blackjack
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/maybCardGames/naughtsAndCrosses"
-              className="relative px-2 py-1 font-medium text-white transition-colors duration-300
-                hover:text-blue-300
-                after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:bottom-0 after:w-0 after:h-0.5 after:bg-blue-500 after:rounded-full
-                hover:after:w-full after:transition-all after:duration-300
-                hover:animate-bounce-short"
-              viewTransition
-            >
-              O's & X's
-            </Link>
-          </li>
+              <button
+                className="px-2 py-1 font-semibold hover:text-blue-300 transition-colors"
+                tabIndex={0}
+                aria-haspopup="true"
+                aria-expanded={openCategory === cat.label}
+              >
+                {cat.label}
+              </button>
+              {/* Dropdown */}
+              <div
+                className={`
+                  absolute left-0 mt-2 w-40 rounded shadow-lg z-50
+                  bg-slate-800 transition-all duration-200
+                  ${openCategory === cat.label ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+                `}
+                onMouseEnter={() => setOpenCategory(cat.label)}
+                onMouseLeave={() => setOpenCategory(null)}
+              >
+                <ul className="flex flex-col">
+                  {getSortedGames(cat.games).map((game) => (
+                    <li key={game.label}>
+                      <Link
+                        to={game.to}
+                        className="block px-4 py-2 hover:bg-slate-700"
+                        viewTransition
+                        onClick={() => setOpenCategory(null)}
+                      >
+                        {game.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          ))}
         </ul>
         {/* Hamburger for mobile */}
         <div className="sm:hidden relative" ref={menuRef}>
           <button
             className="flex flex-col justify-center items-center w-8 h-8 relative"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => {
+              setMenuOpen((open) => !open);
+              setOpenCategory(null);
+            }}
             aria-label="Toggle menu"
           >
             {/* Hamburger/X icon */}
@@ -120,44 +166,48 @@ export default function Navbar() {
           </button>
           <div
             className={`
-              absolute right-0 mt-2 w-40 rounded shadow-lg z-50
+              absolute right-0 mt-2 w-48 rounded shadow-lg z-50
               transition-all duration-300 overflow-hidden
               bg-slate-800
-              ${menuOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0 pointer-events-none"}
+              ${menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0 pointer-events-none"}
             `}
           >
             <ul className="flex flex-col">
-              <li>
-                <Link
-                  to="/maybCardGames/solitaire"
-                  className="block px-4 py-2 hover:bg-slate-700"
-                  viewTransition
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Solitaire
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/maybCardGames/blackjack"
-                  className="block px-4 py-2 hover:bg-slate-700"
-                  viewTransition
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Blackjack
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/maybCardGames/naughtsAndCrosses"
-                  className="block px-4 py-2 hover:bg-slate-700"
-                  viewTransition
-                  onClick={() => setMenuOpen(false)}
-                >
-                  O's & X's
-                </Link>
-              </li>
+              {CATEGORIES.map((cat) => (
+                <li key={cat.label} className="border-b border-slate-700 last:border-0">
+                  <button
+                    className="w-full text-left px-4 py-2 font-semibold hover:bg-slate-700"
+                    onClick={() => handleCategoryClick(cat.label)}
+                  >
+                    {cat.label}
+                  </button>
+                  {/* Show games if this category is open */}
+                  <div
+                    className={`
+                      transition-all duration-200
+                      ${openCategory === cat.label ? "max-h-40 opacity-100" : "max-h-0 opacity-0 overflow-hidden"}
+                    `}
+                  >
+                    <ul>
+                      {getSortedGames(cat.games).map((game) => (
+                        <li key={game.label}>
+                          <Link
+                            to={game.to}
+                            className="block px-6 py-2 text-sm hover:bg-slate-700"
+                            viewTransition
+                            onClick={() => {
+                              setMenuOpen(false);
+                              setOpenCategory(null);
+                            }}
+                          >
+                            {game.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
