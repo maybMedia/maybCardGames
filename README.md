@@ -1,14 +1,22 @@
 # mayb Games
 
-mayb Games is a modern web app that lets you play classic games like Blackjack and Solitaire right in your browser. Built with React, React Router, and Tailwind CSS, it features a sleek UI, smooth animations, and responsive design for desktop and mobile.
+mayb Games is a modern web app that lets you play classic games like Blackjack, Solitaire, O's & X's (Tic-Tac-Toe), and Snake right in your browser. Built with React, React Router, and Tailwind CSS, it features a sleek UI, smooth animations, and responsive design for desktop and mobile.
 
 ## Features
 
-- **Blackjack**: Play against a dealer with animated card draws and win/loss detection.
-- **Solitaire**: A single-player strategy card game with simple, modern graphics.
-  - Move cards between tableau, foundation, and waste piles with smooth stack animations.
+- **Card Games**
+  - **Solitaire**: A single-player strategy card game with simple, modern graphics.
+  - **Blackjack**: Play against a dealer with animated card draws and win/loss detection.
+- **Single Player Games**
+  - **O's & X's**: Classic Tic-Tac-Toe for one player.
+  - **Snake**: The classic snake game.
+  - **Solitaire**
+  - **Blackjack**
+- **Two Player Games**
+  - **O's & X's**: Classic Tic-Tac-Toe for two players.
 - **Responsive Design**: Optimized for all devices, with improved mobile UI (smaller cards, scrollable board, touch-friendly controls).
 - **Animated UI**: Smooth card draw, stack movement, and modal transitions for an engaging experience.
+- **Modern Navigation**: Categorized dropdown navigation for desktop and mobile, with animated transitions.
 
 ## Getting Started
 
