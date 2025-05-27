@@ -40,6 +40,11 @@ export default function Home() {
           description="Play with a friend or against the computer, try to get three in a row!" 
           imageUrl="./naughtsAndCrosses.png"
           navigateTo="/maybCardGames/naughtsAndCrosses"/>
+        <GameSelectButton 
+          name="Snake" 
+          description="A classic game where you control a snake to eat food and grow" 
+          imageUrl="./snake.png"
+          navigateTo="/maybCardGames/snake"/>
       </div>
     </div>
   );
