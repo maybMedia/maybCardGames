@@ -2,33 +2,11 @@ import React, { useState } from "react";
 import SlidingSelector from "~/components/SlidingSelector";
 import SnakeGame from "~/components/SnakeGame";
 
-// Add a simple mobile detection function
-function isMobile() {
-  if (typeof navigator === "undefined") return false;
-  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
-}
-
 export default function Snake() {
   const [speed, setSpeed] = useState("medium");
   const [size, setSize] = useState(18);
   const [fruit, setFruit] = useState("🍎");
   const [showGame, setShowGame] = useState(false);
-
-  // Show "not supported" screen if on mobile
-  if (isMobile()) {
-    return (
-      <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">
-        <div className="container mx-auto flex flex-col items-center justify-center">
-          <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video bg-slate-600 flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-hidden">
-            <h1 className="text-2xl font-bold mb-4 text-center">Snake</h1>
-            <div className="text-lg font-semibold text-center">
-              Game not yet supported on mobile devices.
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">

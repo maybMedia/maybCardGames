@@ -63,6 +63,51 @@ export default function SnakeGame({ size, speed, fruit, onBack }: SnakeGameProps
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
 
+  // --- Swipe controls state ---
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  // --- Swipe controls effect ---
+  useEffect(() => {
+    function handleTouchStart(e: TouchEvent) {
+      if (e.touches.length === 1) {
+        touchStart.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      }
+    }
+
+    function handleTouchEnd(e: TouchEvent) {
+      if (!touchStart.current) return;
+      const dx = e.changedTouches[0].clientX - touchStart.current.x;
+      const dy = e.changedTouches[0].clientY - touchStart.current.y;
+      touchStart.current = null;
+
+      if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return; // Ignore small swipes
+
+      let newDir: Direction | null = null;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe
+        if (dx > 0) newDir = "RIGHT";
+        else newDir = "LEFT";
+      } else {
+        // Vertical swipe
+        if (dy > 0) newDir = "DOWN";
+        else newDir = "UP";
+      }
+      if (newDir && !isOpposite(direction, newDir)) {
+        setNextDirection(newDir);
+      }
+    }
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [direction]);
+
   // Reset game if size or fruit changes
   useEffect(() => {
     setSnake([{ x: Math.floor(size / 2), y: Math.floor(size / 2) }]);
