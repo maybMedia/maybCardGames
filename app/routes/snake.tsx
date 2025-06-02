@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import SlidingSelector from "~/components/SlidingSelector";
 import SnakeGame from "~/components/SnakeGame";
+import type { Route } from "./+types/home";
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Snake" },
+    { name: "description", content: "A classic game where you control a snake to eat food and grow" },
+  ];
+}
 
 export default function Snake() {
   const [speed, setSpeed] = useState("medium");

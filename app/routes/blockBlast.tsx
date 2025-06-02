@@ -1,3 +1,12 @@
+import type { Route } from "./+types/home";
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Block Blast" },
+    { name: "description", content: "A puzzle game where you create rows of blocks to clear them" },
+  ];
+}
+
 export default function BlockBlast() {
   return (
     <div className="flex flex-col items-center px-2 sm:px-0">
