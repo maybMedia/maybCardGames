@@ -28,23 +28,28 @@ export default function Home() {
         <GameSelectButton 
           name="Solitaire" 
           description="A strategy card game played by one player" 
-          imageUrl="./solitaire.png"
+          imageUrl="./gameIcons/solitaire.png"
           navigateTo="/maybCardGames/solitaire"/>
         <GameSelectButton 
           name="Blackjack" 
           description="A game where you aim to get as close to 21 as possible" 
-          imageUrl="./blackjack.png"
+          imageUrl="./gameIcons/blackjack.png"
           navigateTo="/maybCardGames/blackjack"/>
         <GameSelectButton 
           name="Naughts and Crosses" 
           description="Play with a friend or against the computer, try to get three in a row!" 
-          imageUrl="./naughtsAndCrosses.png"
+          imageUrl="./gameIcons/naughtsAndCrosses.png"
           navigateTo="/maybCardGames/naughtsAndCrosses"/>
         <GameSelectButton 
           name="Snake" 
           description="A classic game where you control a snake to eat food and grow" 
-          imageUrl="./snake.png"
+          imageUrl="./gameIcons/snake.png"
           navigateTo="/maybCardGames/snake"/>
+        <GameSelectButton 
+          name="Block Blast"
+          description="A puzzle game where you create rows of blocks to clear them" 
+          imageUrl="./gameIcons/blockBlast.png"
+          navigateTo="/maybCardGames/blockBlast"/>
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ const CATEGORIES = [
       { label: "Snake", to: "/maybCardGames/snake" },
       { label: "Solitaire", to: "/maybCardGames/solitaire" },
       { label: "Blackjack", to: "/maybCardGames/blackjack" },
+      { label: "Block Blast", to: "/maybCardGames/blockBlast" },
     ],
   },
   {

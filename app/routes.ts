@@ -6,4 +6,5 @@ export default [
     route("maybCardGames/blackjack", "routes/blackjack.tsx"),
     route("maybCardGames/naughtsAndCrosses", "routes/naughtsAndCrosses.tsx"),
     route("maybCardGames/snake", "routes/snake.tsx"),
+    route("maybCardGames/blockBlast", "routes/blockBlast.tsx"),
 ] satisfies RouteConfig;
