@@ -70,7 +70,7 @@ export default function Navbar() {
   return (
     <nav
       className={`
-        md:fixed md:top-0 md:left-0 w-full h-16 bg-slate-800 text-white p-4 z-50
+        fixed top-0 left-0 w-full h-16 bg-slate-800 text-white p-4 z-50
         transition-all duration-500 ease-out
         ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"}
       `}

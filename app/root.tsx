@@ -40,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="main-scroll-area flex-1 overflow-y-auto">
+        <div className="main-scroll-area flex-1 overflow-y-auto pt-16">
           {children}
         </div>
         <ScrollRestoration />
@@ -71,7 +71,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
+    <main className="pt-4 p-4 container mx-auto">
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (

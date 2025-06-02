@@ -10,7 +10,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center h-screen sm:pt-26 pt-6">
+    <div className="flex flex-col items-center min-h-full pt-6 pb-8 px-4">
       <h1 className="text-2xl font-bold">Select your game!</h1>
       <div
         className="
