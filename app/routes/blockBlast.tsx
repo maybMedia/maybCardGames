@@ -228,6 +228,11 @@ export default function BlockBlast() {
     grabOffset: null,
   });
 
+  const [clearingLines, setClearingLines] = useState<{
+    rows: number[];
+    cols: number[];
+  }>({ rows: [], cols: [] });
+
   useEffect(() => {
     if (availableShapes.every((shape) => shape === null)) {
       const newShapes = SHAPES
@@ -249,6 +254,22 @@ export default function BlockBlast() {
       color: "",
     }))
   );
+
+  const animateLineClear = async (fullRows: number[], fullCols: number[], newGrid: any[]) => {
+    setClearingLines({ rows: fullRows, cols: fullCols });
+    
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    const updatedGrid = newGrid.map(cell => {
+      if (fullRows.includes(cell.row) || fullCols.includes(cell.col)) {
+        return { ...cell, filled: false, color: "" };
+      }
+      return cell;
+    });
+    
+    setGrid(updatedGrid);
+    setClearingLines({ rows: [], cols: [] });
+  };
 
   const canPlaceShape = (
     shape: Shape,
@@ -330,7 +351,7 @@ export default function BlockBlast() {
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetSlot: any) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, targetSlot: any) => {
     e.preventDefault();
     const shapeId = e.dataTransfer.getData("text/plain");
     const shape = availableShapes.find((s) => s && s.id === shapeId);
@@ -364,26 +385,22 @@ export default function BlockBlast() {
     const { fullRows, fullCols } = findFullLines(newGrid);
     const totalLinesCleared = fullRows.length + fullCols.length;
 
+    // Replace your existing line clearing logic with:
     if (totalLinesCleared > 0) {
-      const updatedGrid = newGrid.map(cell => {
-        if (fullRows.includes(cell.row) || fullCols.includes(cell.col)) {
-          return { ...cell, filled: false, color: "" };
-        }
-        return cell;
-      });
-
-      const pointsGained = (totalLinesCleared > 1) ? totalLinesCleared * baseScorePerLine * comboMultiplier : baseScorePerLine;
+      // Use await to wait for animation completion
+      await animateLineClear(fullRows, fullCols, newGrid);
+      
+      // Calculate and update score after animation
+      const pointsGained = (totalLinesCleared > 1) ? 
+        totalLinesCleared * baseScorePerLine * comboMultiplier : baseScorePerLine;
       const newScore = score + pointsGained;
-
-      setGrid(updatedGrid);
       setScore(newScore);
-
+      
+      // Update high score if needed
       if (newScore > highScore) {
         setHighScore(newScore);
         localStorage.setItem("highScore", String(newScore));
       }
-    } else {
-      setGrid(newGrid);
     }
   }
 
@@ -490,7 +507,7 @@ export default function BlockBlast() {
 
           {/* Grid */}
           <div
-            className="grid gap-1 p-2"
+            className="grid gap-1 p-2 relative"
             style={{
               gridTemplateRows: `repeat(8, 1fr)`,
               gridTemplateColumns: `repeat(8, 1fr)`,
@@ -506,16 +523,24 @@ export default function BlockBlast() {
             {grid.map((slot) => {
               const preview = getSlotPreview(slot);
 
+              const isInClearingRow = clearingLines.rows.includes(slot.row);
+              const isInClearingCol = clearingLines.cols.includes(slot.col);
+              const isClearing = isInClearingRow || isInClearingCol;
+
               if (slot.filled) {
                 return (
                   <motion.div
                     key={slot.id}
-                    layoutId={`slot-${slot.id}`}
                     className={`aspect-square rounded-sm border ${slot.color}`}
-                    style={{ minHeight: "20px" }}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    animate={{ 
+                      // Step 4b: Add clearing animations
+                      scale: isClearing ? [1, 1.2, 0] : 1,           // Grow then shrink
+                      rotate: isClearing ? [0, 10, -10, 0] : 0,      // Wiggle effect
+                      opacity: isClearing ? [1, 0.8, 0] : 1          // Fade out
+                    }}
+                    transition={{ 
+                      duration: isClearing ? 0.6 : 0.3    // Longer duration for clearing
+                    }}
                   />
                 );
               }
@@ -541,6 +566,48 @@ export default function BlockBlast() {
                 />
               );
             })}
+
+            {/* Horizontal line overlays for clearing rows */}
+            {clearingLines.rows.map(row => (
+              <motion.div
+                key={`row-${row}`}
+                className="absolute bg-white pointer-events-none"
+                style={{
+                  top: `${(row * 100 / 8) + 1}%`,
+                  left: "1%",
+                  right: "1%",
+                  height: `${100 / 8 - 2}%`,
+                  borderRadius: "4px"
+                }}
+                initial={{ opacity: 0, scaleX: 0 }}
+                animate={{ 
+                  opacity: [0, 0.8, 0],
+                  scaleX: [0, 1, 1]
+                }}
+                transition={{ duration: 0.6 }}
+              />
+            ))}
+
+            {/* Vertical line overlays for clearing columns */}
+            {clearingLines.cols.map(col => (
+              <motion.div
+                key={`col-${col}`}
+                className="absolute bg-white pointer-events-none"
+                style={{
+                  left: `${(col * 100 / 8) + 1}%`,
+                  top: "1%",
+                  bottom: "1%",
+                  width: `${100 / 8 - 2}%`,
+                  borderRadius: "4px"
+                }}
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ 
+                  opacity: [0, 0.8, 0],
+                  scaleY: [0, 1, 1]
+                }}
+                transition={{ duration: 0.6 }}
+              />
+            ))}
           </div>
 
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-4 justify-center">
