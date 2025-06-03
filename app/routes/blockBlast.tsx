@@ -200,7 +200,28 @@ const SHAPES = [
   }
 ];
 
+function isMobile() {
+  if (typeof navigator === "undefined") return false;
+  return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+}
+
 export default function BlockBlast() {
+
+  if(isMobile()){
+    return (
+      <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">
+        <div className="container mx-auto flex flex-col items-center justify-center">
+          <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video rainbow-bg flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-hidden">
+            <h1 className="text-2xl font-bold mb-4 text-center">Block Blast</h1>
+            <div className="text-lg font-semibold text-center">
+              Game not yet supported on mobile devices.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const getRandomShapes = () => {
     const shuffled = [...SHAPES].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
