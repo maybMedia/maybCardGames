@@ -357,7 +357,55 @@ export default function BlockBlast() {
     setGrid(newGrid);
     setAvailableShapes((prev) => prev.map((s) => (s?.id === shapeId ? null : s)));
     setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
+
+    const baseScorePerLine = 100;
+    let comboMultiplier = 1.5;
+
+    const { fullRows, fullCols } = findFullLines(newGrid);
+    const totalLinesCleared = fullRows.length + fullCols.length;
+
+    if (totalLinesCleared > 0) {
+      const updatedGrid = newGrid.map(cell => {
+        if (fullRows.includes(cell.row) || fullCols.includes(cell.col)) {
+          return { ...cell, filled: false, color: "" };
+        }
+        return cell;
+      });
+
+      const pointsGained = (totalLinesCleared > 1) ? totalLinesCleared * baseScorePerLine * comboMultiplier : baseScorePerLine;
+      const newScore = score + pointsGained;
+
+      setGrid(updatedGrid);
+      setScore(newScore);
+
+      if (newScore > highScore) {
+        setHighScore(newScore);
+        localStorage.setItem("highScore", String(newScore));
+      }
+    } else {
+      setGrid(newGrid);
+    }
   }
+
+  const findFullLines = (grid: any) => {
+    const fullRows: number[] = [];
+    const fullCols: number[] = [];
+
+    for (let r = 0; r < 8; r++) {
+      if (grid.filter((cell: { row: number; filled: boolean; }) => cell.row === r && cell.filled).length === 8) {
+        fullRows.push(r);
+      }
+    }
+
+    for (let c = 0; c < 8; c++) {
+      if (grid.filter((cell: { col: number; filled: boolean; }) => cell.col === c && cell.filled).length === 8) {
+        fullCols.push(c);
+      }
+    }
+
+    return { fullRows, fullCols };
+  };
+
 
   const renderShape = (shape: Shape, index: number) => {
     const blockSize = 24;
