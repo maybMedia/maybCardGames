@@ -208,6 +208,10 @@ export default function BlockBlast() {
 
   type ShapeSlot = Shape | null;
 
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")!) : 0);
+  localStorage.setItem("highScore", String(highScore));
+
   const [availableShapes, setAvailableShapes] = useState<ShapeSlot[]>(() =>
     SHAPES.sort(() => 0.5 - Math.random()).slice(0, 3)
   );
@@ -429,8 +433,13 @@ export default function BlockBlast() {
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white">Block Blast</h1>
 
-        <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video rainbow-bg flex flex-col items-center justify-start rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto shadow-2xl">
-          
+        <div className="w-full sm:w-4/6 aspect-[4/6] sm:aspect-video rainbow-bg flex flex-col items-center justify-start rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto shadow-2xl">
+          {/* Score */}
+          <div className="w-full max-w-96 flex justify-between items-center mb-4">
+            <h1 className="text-lg font-bold bg-[rgba(0,20,60,0.7)] p-1 rounded-lg">Score: {score}</h1>
+            <h1 className="text-lg font-bold bg-[rgba(0,20,60,0.5)] p-1 rounded-lg">Highscore: {highScore}</h1>
+          </div>
+
           {/* Grid */}
           <div
             className="grid gap-1 p-2"
