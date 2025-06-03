@@ -388,11 +388,23 @@ export default function BlockBlast() {
           >
             {grid.map((slot) => {
               const preview = getSlotPreview(slot);
-              let className = "aspect-square rounded-sm border transition-all duration-200 ";
-              
+
               if (slot.filled) {
-                className += slot.color;
-              } else if (preview) {
+                return (
+                  <motion.div
+                    key={slot.id}
+                    layoutId={`slot-${slot.id}`}
+                    className={`aspect-square rounded-sm border ${slot.color}`}
+                    style={{ minHeight: "20px" }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  />
+                );
+              }
+
+              let className = "aspect-square rounded-sm border transition-all duration-200 ";
+              if (preview) {
                 if (preview.canPlace) {
                   className += `${preview.color} opacity-70 border-white border-2 animate-pulse`;
                 } else {
@@ -401,7 +413,7 @@ export default function BlockBlast() {
               } else {
                 className += "bg-slate-600 border-slate-500 hover:bg-slate-500";
               }
-              
+
               return (
                 <div
                   key={slot.id}
