@@ -203,3 +203,26 @@ body {
 .hover\:animate-wiggle:hover {
   animation: wiggle 0.5s;
 }
+
+.rainbow-bg {
+  background: linear-gradient(90deg,
+    hsl(0, 60%, 80%),
+    hsl(60, 60%, 80%),
+    hsl(120, 60%, 80%),
+    hsl(180, 60%, 80%),
+    hsl(240, 60%, 80%),
+    hsl(300, 60%, 80%),
+    hsl(360, 60%, 80%)
+  );
+  background-size: 400% 200%;
+  animation: rgb-slide 90s linear infinite;
+  }
+
+  @keyframes rgb-slide {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 400% 0%;
+  }
+}
