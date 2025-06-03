@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Route } from "./+types/home";
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Block Blast" },
-    { name: "description", content: "A puzzle game where you create rows of blocks to clear them" },
-  ];
-}
 
 type Block = {
   row: number;
@@ -273,7 +265,6 @@ export default function BlockBlast() {
     });
   };
 
-
   const getCurrentShape = () => {
     if (!dragState.shapeId) return null;
     return availableShapes.find((s) => s && s.id === dragState.shapeId) || null;
@@ -364,12 +355,79 @@ export default function BlockBlast() {
     setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
   }
 
-  return (
-    <div className="flex flex-col items-center px-2 sm:px-0">
-      <div className="container mx-auto flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold p-4 sm:p-5 text-center">Block Blast</h1>
+  const renderShape = (shape: Shape, index: number) => {
+    const blockSize = 24;
 
-        <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video rainbow-bg flex flex-col items-center justify-start rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto">
+    const rows = shape.blocks.map((b) => b.row);
+    const cols = shape.blocks.map((b) => b.col);
+    const minRow = Math.min(...rows);
+    const maxRow = Math.max(...rows);
+    const minCol = Math.min(...cols);
+    const maxCol = Math.max(...cols);
+
+    const shapeWidth = (maxCol - minCol + 1) * blockSize;
+    const shapeHeight = (maxRow - minRow + 1) * blockSize;
+
+    const containerSize = 3 * blockSize;
+    const offsetX = (containerSize - shapeWidth) / 2 - minCol * blockSize;
+    const offsetY = (containerSize - shapeHeight) / 2 - minRow * blockSize;
+
+    return (
+      <motion.div
+        key={`${shape.id}-${index}`}
+        initial={{ scale: 0, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0, opacity: 0, y: -20 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 300, 
+          damping: 25,
+          delay: index * 0.1 // Stagger the animations
+        }}
+        onDragEnd={handleDragEnd}
+        className="cursor-grab p-1 hover:scale-105 transition-transform duration-200 active:cursor-grabbing"
+      >
+        <div
+          className="relative"
+          style={{
+            width: `${containerSize}px`,
+            height: `${containerSize}px`,
+          }}
+        >
+          {shape.blocks.map(({ row, col }, blockIndex) => (
+            <motion.div
+              key={blockIndex}
+              className={`absolute ${shape.color} rounded-sm shadow-sm`}
+              style={{
+                width: `${blockSize - 2}px`,
+                height: `${blockSize - 2}px`,
+                top: `${row * blockSize + offsetY}px`,
+                left: `${col * blockSize + offsetX}px`,
+              }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 400, 
+                damping: 20,
+                delay: index * 0.1 + blockIndex * 0.02 // Individual block animation delay
+              }}
+              draggable
+              onDragStart={(e) => handleDragStart(e, shape.id, { row, col })}
+              onDragEnd={handleDragEnd}
+            />
+          ))}
+        </div>
+      </motion.div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col items-center px-2 sm:px-0 min-h-screen">
+      <div className="container mx-auto flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white">Block Blast</h1>
+
+        <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video rainbow-bg flex flex-col items-center justify-start rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto shadow-2xl">
           
           {/* Grid */}
           <div
@@ -382,7 +440,7 @@ export default function BlockBlast() {
               maxWidth: 400,
               background: "#334155",
               borderRadius: 12,
-              boxShadow: "0 2px 8px #0002",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
             }}
             onDragLeave={handleDragLeave}
           >
@@ -428,63 +486,19 @@ export default function BlockBlast() {
 
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-4 justify-center">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="w-[96px] h-[96px] bg-slate-700 rounded-lg flex items-center justify-center">
-                {availableShapes[i] && (
-                  <div
-                    key={availableShapes[i].id}
-                    onDragEnd={handleDragEnd}
-                    className="cursor-grab p-1 hover:scale-105 transition-transform duration-200 active:cursor-grabbing"
-                  >
-                    {(() => {
-                      const shape = availableShapes[i];
-                      const blockSize = 24;
-
-                      const rows = shape.blocks.map((b) => b.row);
-                      const cols = shape.blocks.map((b) => b.col);
-                      const minRow = Math.min(...rows);
-                      const maxRow = Math.max(...rows);
-                      const minCol = Math.min(...cols);
-                      const maxCol = Math.max(...cols);
-
-                      const shapeWidth = (maxCol - minCol + 1) * blockSize;
-                      const shapeHeight = (maxRow - minRow + 1) * blockSize;
-
-                      const containerSize = 3 * blockSize;
-                      const offsetX = (containerSize - shapeWidth) / 2 - minCol * blockSize;
-                      const offsetY = (containerSize - shapeHeight) / 2 - minRow * blockSize;
-
-                      return (
-                        <div
-                          className="relative"
-                          style={{
-                            width: `${containerSize}px`,
-                            height: `${containerSize}px`,
-                          }}
-                        >
-                          {shape.blocks.map(({ row, col }, index) => (
-                            <div
-                              key={index}
-                              className={`absolute ${shape.color} rounded-sm shadow-sm`}
-                              style={{
-                                width: `${blockSize - 2}px`,
-                                height: `${blockSize - 2}px`,
-                                top: `${row * blockSize + offsetY}px`,
-                                left: `${col * blockSize + offsetX}px`,
-                              }}
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, shape.id, { row, col })}
-                              onDragEnd={handleDragEnd}
-                            />
-                          ))}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
+              <motion.div 
+                key={i} 
+                className="w-[96px] h-[96px] bg-slate-700/80 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-lg border border-slate-600"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <AnimatePresence mode="wait">
+                  {availableShapes[i] && renderShape(availableShapes[i], i)}
+                </AnimatePresence>
+              </motion.div>
             ))}
           </div>
-
         </div>
       </div>
     </div>
