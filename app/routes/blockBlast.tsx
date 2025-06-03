@@ -219,6 +219,15 @@ export default function BlockBlast() {
   const [availableShapes, setAvailableShapes] = useState<ShapeSlot[]>(() =>
     SHAPES.sort(() => 0.5 - Math.random()).slice(0, 3)
   );
+  const [dragState, setDragState] = useState<{
+    shapeId: string | null;
+    hoverRow: number | null;
+    hoverCol: number | null;
+  }>({
+    shapeId: null,
+    hoverRow: null,
+    hoverCol: null,
+  });
 
   useEffect(() => {
     if (availableShapes.every((shape) => shape === null)) {
@@ -227,7 +236,7 @@ export default function BlockBlast() {
         .slice(0, 3);
       const timeout = setTimeout(() => {
         setAvailableShapes(newShapes);
-      }, 400); // wait for exit animation
+      }, 400);
       return () => clearTimeout(timeout);
     }
   }, [availableShapes]);
@@ -238,11 +247,72 @@ export default function BlockBlast() {
       row: Math.floor(i / 8),
       col: i % 8,
       filled: false,
-      color: "", // ← add this
+      color: "",
     }))
   );
 
+  const canPlaceShape = (shape: Shape, targetRow: number, targetCol: number) => {
+    return shape.blocks.every(({ row, col }) => {
+      const r = targetRow + row;
+      const c = targetCol + col;
+      return r >= 0 && r < 8 && c >= 0 && c < 8 && !grid.find((s) => s.row === r && s.col === c)?.filled;
+    });
+  };
+
+  const getCurrentShape = () => {
+    if (!dragState.shapeId) return null;
+    return availableShapes.find((s) => s && s.id === dragState.shapeId) || null;
+  };
+
+  const getSlotPreview = (slot: any) => {
+    const shape = getCurrentShape();
+    if (!shape || dragState.hoverRow === null || dragState.hoverCol === null) return null;
+
+    const isPreviewSlot = shape.blocks.some(({ row, col }) => {
+      const r = dragState.hoverRow! + row;
+      const c = dragState.hoverCol! + col;
+      return r === slot.row && c === slot.col;
+    });
+
+    if (!isPreviewSlot) return null;
+
+    const canPlace = canPlaceShape(shape, dragState.hoverRow!, dragState.hoverCol!);
+    return {
+      color: shape.color,
+      canPlace
+    };
+  };
+
+  const handleDragStart = (e: React.DragEvent, shapeId: string) => {
+    e.dataTransfer.setData("text/plain", shapeId);
+    setDragState(prev => ({ ...prev, shapeId }));
+  };
+
+  const handleDragEnd = () => {
+    setDragState({ shapeId: null, hoverRow: null, hoverCol: null });
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, targetSlot: any) => {
+    e.preventDefault();
+    setDragState(prev => ({
+      ...prev,
+      hoverRow: targetSlot.row,
+      hoverCol: targetSlot.col
+    }));
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setDragState(prev => ({ ...prev, hoverRow: null, hoverCol: null }));
+    }
+  };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetSlot: any) => {
+    e.preventDefault();
     const shapeId = e.dataTransfer.getData("text/plain");
     const shape = availableShapes.find((s) => s && s.id === shapeId);
     if (!shape) return;
@@ -251,13 +321,12 @@ export default function BlockBlast() {
     const baseRow = targetSlot.row;
     const baseCol = targetSlot.col;
 
-    const canPlace = shape.blocks.every(({ row, col }) => {
-      const r = baseRow + row;
-      const c = baseCol + col;
-      return r < 8 && c < 8 && !newGrid.find((s) => s.row === r && s.col === c)?.filled;
-    });
+    const canPlace = canPlaceShape(shape, baseRow, baseCol);
 
-    if (!canPlace) return;
+    if (!canPlace) {
+      setDragState({ shapeId: null, hoverRow: null, hoverCol: null });
+      return;
+    }
 
     shape.blocks.forEach(({ row, col }) => {
       const r = baseRow + row;
@@ -272,11 +341,7 @@ export default function BlockBlast() {
       prev.map((shape) => (shape?.id === shapeId ? null : shape))
     );
 
-  };
-
-
-  const handleDragStart = (e: React.DragEvent, shapeId: string) => {
-    e.dataTransfer.setData("text/plain", shapeId);
+    setDragState({ shapeId: null, hoverRow: null, hoverCol: null });
   };
 
   return (
@@ -299,80 +364,90 @@ export default function BlockBlast() {
               borderRadius: 12,
               boxShadow: "0 2px 8px #0002",
             }}
+            onDragLeave={handleDragLeave}
           >
-            {grid.map((slot) => (
-              <div
-                key={slot.id}
-                onDrop={(e) => handleDrop(e, slot)}
-                onDragOver={(e) => e.preventDefault()}
-                className={`
-                  aspect-square rounded-sm border transition-colors duration-200
-                  ${slot.filled ? slot.color : "bg-slate-600 border-slate-500"}
-                `}
-                style={{ minHeight: "20px" }}
-              />
-            ))}
+            {grid.map((slot) => {
+              const preview = getSlotPreview(slot);
+              let className = "aspect-square rounded-sm border transition-all duration-200 ";
+              
+              if (slot.filled) {
+                className += slot.color;
+              } else if (preview) {
+                if (preview.canPlace) {
+                  className += `${preview.color} opacity-70 border-white border-2 animate-pulse`;
+                } else {
+                  className += "bg-red-500 opacity-70 border-red-300 border-2 animate-pulse";
+                }
+              } else {
+                className += "bg-slate-600 border-slate-500 hover:bg-slate-500";
+              }
+              
+              return (
+                <div
+                  key={slot.id}
+                  onDrop={(e) => handleDrop(e, slot)}
+                  onDragOver={(e) => handleDragOver(e, slot)}
+                  className={className}
+                  style={{ minHeight: "20px" }}
+                />
+              );
+            })}
           </div>
 
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-4 justify-center">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="w-[96px] h-[96px] bg-slate-700 rounded-lg flex items-center justify-center">
-                <AnimatePresence>
-                  {availableShapes[i] && (
-                    <motion.div
-                      key={availableShapes[i].id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, availableShapes[i].id)}
-                      className="cursor-grab p-1"
-                      initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.5, y: -20 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {(() => {
-                        const shape = availableShapes[i];
-                        const blockSize = 24;
+                {availableShapes[i] && (
+                  <div
+                    key={availableShapes[i].id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, availableShapes[i].id)}
+                    onDragEnd={handleDragEnd}
+                    className="cursor-grab p-1 hover:scale-105 transition-transform duration-200 active:cursor-grabbing"
+                  >
+                    {(() => {
+                      const shape = availableShapes[i];
+                      const blockSize = 24;
 
-                        const rows = shape.blocks.map((b) => b.row);
-                        const cols = shape.blocks.map((b) => b.col);
-                        const minRow = Math.min(...rows);
-                        const maxRow = Math.max(...rows);
-                        const minCol = Math.min(...cols);
-                        const maxCol = Math.max(...cols);
+                      const rows = shape.blocks.map((b) => b.row);
+                      const cols = shape.blocks.map((b) => b.col);
+                      const minRow = Math.min(...rows);
+                      const maxRow = Math.max(...rows);
+                      const minCol = Math.min(...cols);
+                      const maxCol = Math.max(...cols);
 
-                        const shapeWidth = (maxCol - minCol + 1) * blockSize;
-                        const shapeHeight = (maxRow - minRow + 1) * blockSize;
+                      const shapeWidth = (maxCol - minCol + 1) * blockSize;
+                      const shapeHeight = (maxRow - minRow + 1) * blockSize;
 
-                        const containerSize = 3 * blockSize;
-                        const offsetX = (containerSize - shapeWidth) / 2 - minCol * blockSize;
-                        const offsetY = (containerSize - shapeHeight) / 2 - minRow * blockSize;
+                      const containerSize = 3 * blockSize;
+                      const offsetX = (containerSize - shapeWidth) / 2 - minCol * blockSize;
+                      const offsetY = (containerSize - shapeHeight) / 2 - minRow * blockSize;
 
-                        return (
-                          <div
-                            className="relative"
-                            style={{
-                              width: `${containerSize}px`,
-                              height: `${containerSize}px`,
-                            }}
-                          >
-                            {shape.blocks.map(({ row, col }, index) => (
-                              <div
-                                key={index}
-                                className={`absolute ${shape.color} rounded-sm`}
-                                style={{
-                                  width: `${blockSize - 2}px`,
-                                  height: `${blockSize - 2}px`,
-                                  top: `${row * blockSize + offsetY}px`,
-                                  left: `${col * blockSize + offsetX}px`,
-                                }}
-                              />
-                            ))}
-                          </div>
-                        );
-                      })()}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      return (
+                        <div
+                          className="relative"
+                          style={{
+                            width: `${containerSize}px`,
+                            height: `${containerSize}px`,
+                          }}
+                        >
+                          {shape.blocks.map(({ row, col }, index) => (
+                            <div
+                              key={index}
+                              className={`absolute ${shape.color} rounded-sm shadow-sm`}
+                              style={{
+                                width: `${blockSize - 2}px`,
+                                height: `${blockSize - 2}px`,
+                                top: `${row * blockSize + offsetY}px`,
+                                left: `${col * blockSize + offsetX}px`,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             ))}
           </div>
