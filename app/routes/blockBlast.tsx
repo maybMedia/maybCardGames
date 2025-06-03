@@ -219,14 +219,17 @@ export default function BlockBlast() {
   const [availableShapes, setAvailableShapes] = useState<ShapeSlot[]>(() =>
     SHAPES.sort(() => 0.5 - Math.random()).slice(0, 3)
   );
+  
   const [dragState, setDragState] = useState<{
     shapeId: string | null;
     hoverRow: number | null;
     hoverCol: number | null;
+    grabOffset: { row: number; col: number } | null;
   }>({
     shapeId: null,
     hoverRow: null,
     hoverCol: null,
+    grabOffset: null,
   });
 
   useEffect(() => {
@@ -251,13 +254,25 @@ export default function BlockBlast() {
     }))
   );
 
-  const canPlaceShape = (shape: Shape, targetRow: number, targetCol: number) => {
+  const canPlaceShape = (
+    shape: Shape,
+    targetRow: number,
+    targetCol: number,
+    grabOffset: { row: number; col: number }
+  ) => {
     return shape.blocks.every(({ row, col }) => {
-      const r = targetRow + row;
-      const c = targetCol + col;
-      return r >= 0 && r < 8 && c >= 0 && c < 8 && !grid.find((s) => s.row === r && s.col === c)?.filled;
+      const r = targetRow - grabOffset.row + row;
+      const c = targetCol - grabOffset.col + col;
+      return (
+        r >= 0 &&
+        r < 8 &&
+        c >= 0 &&
+        c < 8 &&
+        !grid.find((s) => s.row === r && s.col === c)?.filled
+      );
     });
   };
+
 
   const getCurrentShape = () => {
     if (!dragState.shapeId) return null;
@@ -269,27 +284,36 @@ export default function BlockBlast() {
     if (!shape || dragState.hoverRow === null || dragState.hoverCol === null) return null;
 
     const isPreviewSlot = shape.blocks.some(({ row, col }) => {
-      const r = dragState.hoverRow! + row;
-      const c = dragState.hoverCol! + col;
+      const r = dragState.hoverRow! - dragState.grabOffset!.row + row;
+      const c = dragState.hoverCol! - dragState.grabOffset!.col + col;
       return r === slot.row && c === slot.col;
     });
 
     if (!isPreviewSlot) return null;
 
-    const canPlace = canPlaceShape(shape, dragState.hoverRow!, dragState.hoverCol!);
+    const canPlace = canPlaceShape(shape, dragState.hoverRow!, dragState.hoverCol!, dragState.grabOffset!);
     return {
       color: shape.color,
       canPlace
     };
   };
 
-  const handleDragStart = (e: React.DragEvent, shapeId: string) => {
+  const handleDragStart = (
+    e: React.DragEvent,
+    shapeId: string,
+    grabOffset: { row: number; col: number }
+  ) => {
     e.dataTransfer.setData("text/plain", shapeId);
-    setDragState(prev => ({ ...prev, shapeId }));
+    setDragState({
+      shapeId,
+      hoverRow: null,
+      hoverCol: null,
+      grabOffset,
+    });
   };
 
   const handleDragEnd = () => {
-    setDragState({ shapeId: null, hoverRow: null, hoverCol: null });
+    setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>, targetSlot: any) => {
@@ -321,28 +345,24 @@ export default function BlockBlast() {
     const baseRow = targetSlot.row;
     const baseCol = targetSlot.col;
 
-    const canPlace = canPlaceShape(shape, baseRow, baseCol);
+    const canPlace = canPlaceShape(shape, baseRow, baseCol, dragState.grabOffset!);
 
     if (!canPlace) {
-      setDragState({ shapeId: null, hoverRow: null, hoverCol: null });
+      setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
       return;
     }
 
     shape.blocks.forEach(({ row, col }) => {
-      const r = baseRow + row;
-      const c = baseCol + col;
+      const r = baseRow - dragState.grabOffset!.row + row;
+      const c = baseCol - dragState.grabOffset!.col + col;
       const idx = r * 8 + c;
       newGrid[idx] = { ...newGrid[idx], filled: true, color: shape.color };
     });
 
     setGrid(newGrid);
-
-    setAvailableShapes((prev) =>
-      prev.map((shape) => (shape?.id === shapeId ? null : shape))
-    );
-
-    setDragState({ shapeId: null, hoverRow: null, hoverCol: null });
-  };
+    setAvailableShapes((prev) => prev.map((s) => (s?.id === shapeId ? null : s)));
+    setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
+  }
 
   return (
     <div className="flex flex-col items-center px-2 sm:px-0">
@@ -400,8 +420,6 @@ export default function BlockBlast() {
                 {availableShapes[i] && (
                   <div
                     key={availableShapes[i].id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, availableShapes[i].id)}
                     onDragEnd={handleDragEnd}
                     className="cursor-grab p-1 hover:scale-105 transition-transform duration-200 active:cursor-grabbing"
                   >
@@ -441,6 +459,9 @@ export default function BlockBlast() {
                                 top: `${row * blockSize + offsetY}px`,
                                 left: `${col * blockSize + offsetX}px`,
                               }}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, shape.id, { row, col })}
+                              onDragEnd={handleDragEnd}
                             />
                           ))}
                         </div>
