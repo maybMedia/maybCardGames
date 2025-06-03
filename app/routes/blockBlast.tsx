@@ -413,7 +413,9 @@ export default function BlockBlast() {
                 delay: index * 0.1 + blockIndex * 0.02 // Individual block animation delay
               }}
               draggable
+              // @ts-ignore
               onDragStart={(e) => handleDragStart(e, shape.id, { row, col })}
+              // @ts-check
               onDragEnd={handleDragEnd}
             />
           ))}
@@ -423,7 +425,7 @@ export default function BlockBlast() {
   };
 
   return (
-    <div className="flex flex-col items-center px-2 sm:px-0 min-h-screen">
+    <div className="flex flex-col items-center px-2 sm:px-0">
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white">Block Blast</h1>
 
