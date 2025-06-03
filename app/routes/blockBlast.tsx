@@ -502,6 +502,17 @@ export default function BlockBlast() {
           {/* Score */}
           <div className="w-full max-w-96 flex justify-between items-center mb-4">
             <h1 className="text-lg font-bold bg-[rgba(0,20,60,0.7)] p-1 rounded-lg">Score: {score}</h1>
+            <button className="text-lg font-bold text-center justify-center bg-slate-600 aspect-square w-8 rounded-lg" onClick={() => {
+              setGrid(Array.from({ length: 64 }, (_, i) => ({
+                id: i,
+                row: Math.floor(i / 8),
+                col: i % 8,
+                filled: false,
+                color: "",
+              })));
+            setScore(0);
+            setAvailableShapes(getRandomShapes());
+            }}>⟳</button>
             <h1 className="text-lg font-bold bg-[rgba(0,20,60,0.5)] p-1 rounded-lg">Highscore: {highScore}</h1>
           </div>
 
