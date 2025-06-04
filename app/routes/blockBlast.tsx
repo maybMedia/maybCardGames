@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Route } from "./+types/home";
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Block Blast" },
+    { name: "description", content: "A puzzle game where you create rows of blocks to clear them" },
+    { content: "user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" },
+  ];
+}
 
 type Block = {
   row: number;
@@ -288,6 +297,17 @@ export default function BlockBlast() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const preventTouchMove = (e: TouchEvent) => {
+      if (isMobile()) e.preventDefault();
+    };
+
+    document.body.addEventListener("touchmove", preventTouchMove, { passive: false });
+
+    return () => {
+      document.body.removeEventListener("touchmove", preventTouchMove);
+    };
+  }, []);
 
   const animateLineClear = async (fullRows: number[], fullCols: number[], newGrid: any[]) => {
     setClearingLines({ rows: fullRows, cols: fullCols });
@@ -682,7 +702,7 @@ export default function BlockBlast() {
   };
 
   return (
-    <div className="flex flex-col items-center px-2 sm:px-0 overflow-hidden">
+    <div className="flex flex-col items-center px-2 sm:px-0 overflow-hidden touch-none">
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white">Block Blast</h1>
 
