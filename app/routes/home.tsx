@@ -26,6 +26,12 @@ export default function Home() {
         "
       >
         <GameSelectButton 
+          name="Block Blast"
+          description="A puzzle game where you create rows of blocks to clear them" 
+          imageUrl="./gameIcons/blockBlast.png"
+          navigateTo="/maybCardGames/blockBlast"
+          banner="Newest Release"/>
+        <GameSelectButton 
           name="Solitaire" 
           description="A strategy card game played by one player" 
           imageUrl="./gameIcons/solitaire.png"
@@ -34,7 +40,8 @@ export default function Home() {
           name="Blackjack" 
           description="A game where you aim to get as close to 21 as possible" 
           imageUrl="./gameIcons/blackjack.png"
-          navigateTo="/maybCardGames/blackjack"/>
+          navigateTo="/maybCardGames/blackjack"
+          banner="Fan Favourite"/>
         <GameSelectButton 
           name="Naughts and Crosses" 
           description="Play with a friend or against the computer, try to get three in a row!" 
@@ -45,11 +52,6 @@ export default function Home() {
           description="A classic game where you control a snake to eat food and grow" 
           imageUrl="./gameIcons/snake.png"
           navigateTo="/maybCardGames/snake"/>
-        <GameSelectButton 
-          name="Block Blast"
-          description="A puzzle game where you create rows of blocks to clear them" 
-          imageUrl="./gameIcons/blockBlast.png"
-          navigateTo="/maybCardGames/blockBlast"/>
       </div>
     </div>
   );
