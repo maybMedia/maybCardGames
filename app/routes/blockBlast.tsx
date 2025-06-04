@@ -206,22 +206,6 @@ function isMobile() {
 }
 
 export default function BlockBlast() {
-
-  if(isMobile()){
-    return (
-      <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">
-        <div className="container mx-auto flex flex-col items-center justify-center">
-          <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video rainbow-bg flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-hidden">
-            <h1 className="text-2xl font-bold mb-4 text-center">Block Blast</h1>
-            <div className="text-lg font-semibold text-center">
-              Game not yet supported on mobile devices.
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const getRandomShapes = () => {
     const shuffled = [...SHAPES].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
@@ -230,8 +214,19 @@ export default function BlockBlast() {
   type ShapeSlot = Shape | null;
 
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")!) : 0);
-  localStorage.setItem("highScore", String(highScore));
+  const [highScore, setHighScore] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem("highScore");
+      return saved ? parseInt(saved) : 0;
+    }
+    return 0;
+  });
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem("highScore", String(highScore));
+    }
+  }, [highScore]);
 
   const [availableShapes, setAvailableShapes] = useState<ShapeSlot[]>(() =>
     SHAPES.sort(() => 0.5 - Math.random()).slice(0, 3)
@@ -242,17 +237,23 @@ export default function BlockBlast() {
     hoverRow: number | null;
     hoverCol: number | null;
     grabOffset: { row: number; col: number } | null;
+    isDragging: boolean;
+    dragPosition: { x: number; y: number } | null;
   }>({
     shapeId: null,
     hoverRow: null,
     hoverCol: null,
     grabOffset: null,
+    isDragging: false,
+    dragPosition: null,
   });
 
   const [clearingLines, setClearingLines] = useState<{
     rows: number[];
     cols: number[];
   }>({ rows: [], cols: [] });
+
+  const [gridRef, setGridRef] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (availableShapes.every((shape) => shape === null)) {
@@ -275,6 +276,18 @@ export default function BlockBlast() {
       color: "",
     }))
   );
+
+  const [isCompactHeight, setIsCompactHeight] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsCompactHeight(window.innerHeight < 700); // Adjust threshold as needed
+    };
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
 
   const animateLineClear = async (fullRows: number[], fullCols: number[], newGrid: any[]) => {
     setClearingLines({ rows: fullRows, cols: fullCols });
@@ -335,6 +348,122 @@ export default function BlockBlast() {
     };
   };
 
+  // Touch event handlers
+  const handleTouchStart = (e: React.TouchEvent, shapeId: string, grabOffset: { row: number; col: number }) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    setDragState({
+      shapeId,
+      hoverRow: null,
+      hoverCol: null,
+      grabOffset,
+      isDragging: true,
+      dragPosition: { x: touch.clientX, y: touch.clientY }
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!dragState.isDragging || !gridRef) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    
+    setDragState(prev => ({
+      ...prev,
+      dragPosition: { x: touch.clientX, y: touch.clientY }
+    }));
+
+    // Get grid position under touch
+    const gridRect = gridRef.getBoundingClientRect();
+    const relativeX = touch.clientX - gridRect.left;
+    const relativeY = touch.clientY - gridRect.top;
+    
+    if (relativeX >= 0 && relativeX <= gridRect.width && 
+        relativeY >= 0 && relativeY <= gridRect.height) {
+      const cellWidth = gridRect.width / 8;
+      const cellHeight = gridRect.height / 8;
+      const col = Math.floor(relativeX / cellWidth);
+      const row = Math.floor(relativeY / cellHeight);
+      
+      if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+        setDragState(prev => ({
+          ...prev,
+          hoverRow: row,
+          hoverCol: col
+        }));
+      } else {
+        setDragState(prev => ({
+          ...prev,
+          hoverRow: null,
+          hoverCol: null
+        }));
+      }
+    } else {
+      setDragState(prev => ({
+        ...prev,
+        hoverRow: null,
+        hoverCol: null
+      }));
+    }
+  };
+
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    if (!dragState.isDragging) return;
+    
+    e.preventDefault();
+    
+    const { shapeId, hoverRow, hoverCol, grabOffset } = dragState;
+    const shape = availableShapes.find((s) => s && s.id === shapeId);
+    
+    if (shape && hoverRow !== null && hoverCol !== null && grabOffset) {
+      const canPlace = canPlaceShape(shape, hoverRow, hoverCol, grabOffset);
+      
+      if (canPlace) {
+        const newGrid = [...grid];
+        
+        shape.blocks.forEach(({ row, col }) => {
+          const r = hoverRow - grabOffset.row + row;
+          const c = hoverCol - grabOffset.col + col;
+          const idx = r * 8 + c;
+          newGrid[idx] = { ...newGrid[idx], filled: true, color: shape.color };
+        });
+
+        setGrid(newGrid);
+        setAvailableShapes((prev) => prev.map((s) => (s?.id === shapeId ? null : s)));
+        
+        const baseScorePerLine = 100;
+        let comboMultiplier = 1.5;
+
+        const { fullRows, fullCols } = findFullLines(newGrid);
+        const totalLinesCleared = fullRows.length + fullCols.length;
+
+        if (totalLinesCleared > 0) {
+          await animateLineClear(fullRows, fullCols, newGrid);
+          
+          const pointsGained = (totalLinesCleared > 1) ? 
+            totalLinesCleared * baseScorePerLine * comboMultiplier : baseScorePerLine;
+          const newScore = score + pointsGained;
+          setScore(newScore);
+          
+          if (newScore > highScore) {
+            setHighScore(newScore);
+          }
+        }
+      }
+    }
+    
+    // Reset drag state
+    setDragState({
+      shapeId: null,
+      hoverRow: null,
+      hoverCol: null,
+      grabOffset: null,
+      isDragging: false,
+      dragPosition: null
+    });
+  };
+
+  // Desktop drag handlers (keeping existing functionality)
   const handleDragStart = (
     e: React.DragEvent,
     shapeId: string,
@@ -346,11 +475,20 @@ export default function BlockBlast() {
       hoverRow: null,
       hoverCol: null,
       grabOffset,
+      isDragging: false,
+      dragPosition: null
     });
   };
 
   const handleDragEnd = () => {
-    setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
+    setDragState({ 
+      shapeId: null, 
+      hoverRow: null, 
+      hoverCol: null, 
+      grabOffset: null,
+      isDragging: false,
+      dragPosition: null
+    });
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>, targetSlot: any) => {
@@ -368,7 +506,11 @@ export default function BlockBlast() {
     const y = e.clientY;
     
     if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      setDragState(prev => ({ ...prev, hoverRow: null, hoverCol: null }));
+      setDragState(prev => ({ 
+        ...prev, 
+        hoverRow: null, 
+        hoverCol: null 
+      }));
     }
   };
 
@@ -385,7 +527,14 @@ export default function BlockBlast() {
     const canPlace = canPlaceShape(shape, baseRow, baseCol, dragState.grabOffset!);
 
     if (!canPlace) {
-      setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
+      setDragState({ 
+        shapeId: null, 
+        hoverRow: null, 
+        hoverCol: null, 
+        grabOffset: null,
+        isDragging: false,
+        dragPosition: null
+      });
       return;
     }
 
@@ -398,7 +547,14 @@ export default function BlockBlast() {
 
     setGrid(newGrid);
     setAvailableShapes((prev) => prev.map((s) => (s?.id === shapeId ? null : s)));
-    setDragState({ shapeId: null, hoverRow: null, hoverCol: null, grabOffset: null });
+    setDragState({ 
+      shapeId: null, 
+      hoverRow: null, 
+      hoverCol: null, 
+      grabOffset: null,
+      isDragging: false,
+      dragPosition: null
+    });
 
     const baseScorePerLine = 100;
     let comboMultiplier = 1.5;
@@ -406,21 +562,16 @@ export default function BlockBlast() {
     const { fullRows, fullCols } = findFullLines(newGrid);
     const totalLinesCleared = fullRows.length + fullCols.length;
 
-    // Replace your existing line clearing logic with:
     if (totalLinesCleared > 0) {
-      // Use await to wait for animation completion
       await animateLineClear(fullRows, fullCols, newGrid);
       
-      // Calculate and update score after animation
       const pointsGained = (totalLinesCleared > 1) ? 
         totalLinesCleared * baseScorePerLine * comboMultiplier : baseScorePerLine;
       const newScore = score + pointsGained;
       setScore(newScore);
       
-      // Update high score if needed
       if (newScore > highScore) {
         setHighScore(newScore);
-        localStorage.setItem("highScore", String(newScore));
       }
     }
   }
@@ -444,9 +595,8 @@ export default function BlockBlast() {
     return { fullRows, fullCols };
   };
 
-
   const renderShape = (shape: Shape, index: number) => {
-    const blockSize = 24;
+    const blockSize = isMobile() ? 20 : 24;
 
     const rows = shape.blocks.map((b) => b.row);
     const cols = shape.blocks.map((b) => b.col);
@@ -462,20 +612,34 @@ export default function BlockBlast() {
     const offsetX = (containerSize - shapeWidth) / 2 - minCol * blockSize;
     const offsetY = (containerSize - shapeHeight) / 2 - minRow * blockSize;
 
+    const isDragging = dragState.isDragging && dragState.shapeId === shape.id;
+
     return (
       <motion.div
         key={`${shape.id}-${index}`}
         initial={{ scale: 0, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
+        animate={{ 
+          scale: isDragging ? 1.1 : 1, 
+          opacity: isDragging ? 0.8 : 1, 
+          y: 0,
+          x: isDragging && dragState.dragPosition ? dragState.dragPosition.x - window.innerWidth/2 : 0,
+          zIndex: isDragging ? 1000 : 1
+        }}
         exit={{ scale: 0, opacity: 0, y: -20 }}
         transition={{ 
           type: "spring", 
           stiffness: 300, 
           damping: 25,
-          delay: index * 0.1 // Stagger the animations
+          delay: isDragging ? 0 : index * 0.1
         }}
         onDragEnd={handleDragEnd}
-        className="cursor-grab p-1 hover:scale-105 transition-transform duration-200 active:cursor-grabbing"
+        className="cursor-grab p-1 hover:scale-105 transition-transform duration-200 active:cursor-grabbing select-none"
+        style={{
+          position: isDragging ? 'fixed' : 'relative',
+          top: isDragging && dragState.dragPosition ? dragState.dragPosition.y - 50 : 'auto',
+          left: isDragging && dragState.dragPosition ? dragState.dragPosition.x - 50 : 'auto',
+          pointerEvents: isDragging ? 'none' : 'auto'
+        }}
       >
         <div
           className="relative"
@@ -500,13 +664,16 @@ export default function BlockBlast() {
                 type: "spring", 
                 stiffness: 400, 
                 damping: 20,
-                delay: index * 0.1 + blockIndex * 0.02 // Individual block animation delay
+                delay: index * 0.1 + blockIndex * 0.02
               }}
-              draggable
+              draggable={!isMobile()}
               // @ts-ignore
-              onDragStart={(e) => handleDragStart(e, shape.id, { row, col })}
-              // @ts-check
-              onDragEnd={handleDragEnd}
+              onDragStart={(e) => !isMobile() && handleDragStart(e, shape.id, { row, col })}
+              //@ts-check
+              onDragEnd={!isMobile() ? handleDragEnd : undefined}
+              onTouchStart={(e) => isMobile() && handleTouchStart(e, shape.id, { row, col })}
+              onTouchMove={isMobile() ? handleTouchMove : undefined}
+              onTouchEnd={isMobile() ? handleTouchEnd : undefined}
             />
           ))}
         </div>
@@ -515,42 +682,48 @@ export default function BlockBlast() {
   };
 
   return (
-    <div className="flex flex-col items-center px-2 sm:px-0">
+    <div className="flex flex-col items-center pt-4 px-2 sm:px-0">
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white">Block Blast</h1>
 
-        <div className="w-full sm:w-4/6 aspect-[4/6] sm:aspect-video rainbow-bg flex flex-col items-center justify-start rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto shadow-2xl">
+        <div className={`w-full sm:w-4/6 rainbow-bg sm:aspect-video aspect-[4/5] flex ${isCompactHeight ? "flex-row gap-4 justify-center" : "flex-col"} items-center rounded-2xl p-2 sm:p-4 text-white relative overflow-hidden shadow-2xl`}>
           {/* Score */}
           <div className="w-full max-w-96 flex justify-between items-center mb-4">
-            <h1 className="text-lg font-bold bg-[rgba(0,20,60,0.7)] p-1 rounded-lg">Score: {score}</h1>
-            <button className="text-lg font-bold text-center justify-center bg-slate-600 aspect-square w-8 rounded-lg" onClick={() => {
-              setGrid(Array.from({ length: 64 }, (_, i) => ({
-                id: i,
-                row: Math.floor(i / 8),
-                col: i % 8,
-                filled: false,
-                color: "",
-              })));
-            setScore(0);
-            setAvailableShapes(getRandomShapes());
-            }}>⟳</button>
-            <h1 className="text-lg font-bold bg-[rgba(0,20,60,0.5)] p-1 rounded-lg">Highscore: {highScore}</h1>
+            <h1 className="text-base sm:text-lg font-bold bg-[rgba(0,20,60,0.7)] p-1 rounded-lg">Score: {score}</h1>
+            <button 
+              className="text-lg font-bold bg-slate-600 aspect-square w-8 rounded-lg flex items-center justify-center touch-manipulation" 
+              onClick={() => {
+                setGrid(Array.from({ length: 64 }, (_, i) => ({
+                  id: i,
+                  row: Math.floor(i / 8),
+                  col: i % 8,
+                  filled: false,
+                  color: "",
+                })));
+                setScore(0);
+                setAvailableShapes(getRandomShapes());
+              }}
+            >
+              ⟳
+            </button>
+            <h1 className="text-base sm:text-lg font-bold bg-[rgba(0,20,60,0.5)] p-1 rounded-lg">High: {highScore}</h1>
           </div>
 
           {/* Grid */}
           <div
-            className="grid gap-1 p-2 relative"
+            ref={setGridRef}
+            className="grid gap-1 p-2 relative touch-none"
             style={{
               gridTemplateRows: `repeat(8, 1fr)`,
               gridTemplateColumns: `repeat(8, 1fr)`,
               width: "100%",
               aspectRatio: "1/1",
-              maxWidth: 400,
+              maxWidth: isMobile() ? 320 : 400,
               background: "#334155",
               borderRadius: 12,
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
             }}
-            onDragLeave={handleDragLeave}
+            onDragLeave={!isMobile() ? handleDragLeave : undefined}
           >
             {grid.map((slot) => {
               const preview = getSlotPreview(slot);
@@ -565,13 +738,12 @@ export default function BlockBlast() {
                     key={slot.id}
                     className={`aspect-square rounded-sm border ${slot.color}`}
                     animate={{ 
-                      // Step 4b: Add clearing animations
-                      scale: isClearing ? [1, 1.2, 0] : 1,           // Grow then shrink
-                      rotate: isClearing ? [0, 10, -10, 0] : 0,      // Wiggle effect
-                      opacity: isClearing ? [1, 0.8, 0] : 1          // Fade out
+                      scale: isClearing ? [1, 1.2, 0] : 1,
+                      rotate: isClearing ? [0, 10, -10, 0] : 0,
+                      opacity: isClearing ? [1, 0.8, 0] : 1
                     }}
                     transition={{ 
-                      duration: isClearing ? 0.6 : 0.3    // Longer duration for clearing
+                      duration: isClearing ? 0.6 : 0.3
                     }}
                   />
                 );
@@ -591,15 +763,15 @@ export default function BlockBlast() {
               return (
                 <div
                   key={slot.id}
-                  onDrop={(e) => handleDrop(e, slot)}
-                  onDragOver={(e) => handleDragOver(e, slot)}
+                  onDrop={!isMobile() ? (e) => handleDrop(e, slot) : undefined}
+                  onDragOver={!isMobile() ? (e) => handleDragOver(e, slot) : undefined}
                   className={className}
                   style={{ minHeight: "20px" }}
                 />
               );
             })}
 
-            {/* Horizontal line overlays for clearing rows */}
+            {/* Line clearing overlays */}
             {clearingLines.rows.map(row => (
               <motion.div
                 key={`row-${row}`}
@@ -620,7 +792,6 @@ export default function BlockBlast() {
               />
             ))}
 
-            {/* Vertical line overlays for clearing columns */}
             {clearingLines.cols.map(col => (
               <motion.div
                 key={`col-${col}`}
@@ -642,11 +813,11 @@ export default function BlockBlast() {
             ))}
           </div>
 
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-4 justify-center">
+          <div className={`${isCompactHeight ? "flex-col ml-2" : "absolute bottom-2 left-1/2 transform -translate-x-1/2"} flex ${isCompactHeight ? "gap-2" : "gap-4"} justify-center`}>
             {Array.from({ length: 3 }).map((_, i) => (
               <motion.div 
                 key={i} 
-                className="w-[96px] h-[96px] bg-slate-700/80 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-lg border border-slate-600"
+                className={`${isMobile() ? 'w-[80px] h-[80px]' : 'w-[96px] h-[96px]'} bg-slate-700/80 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-lg border border-slate-600`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: i * 0.1 }}
@@ -659,6 +830,13 @@ export default function BlockBlast() {
           </div>
         </div>
       </div>
+      
+      {/* Mobile instructions */}
+      {isMobile() && (
+        <div className="mt-4 p-3 bg-slate-800/80 rounded-lg text-white text-sm text-center max-w-sm">
+          <p>Touch and drag shapes to place them on the grid!</p>
+        </div>
+      )}
     </div>
   );
 }
