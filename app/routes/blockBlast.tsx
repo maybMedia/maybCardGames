@@ -682,7 +682,7 @@ export default function BlockBlast() {
   };
 
   return (
-    <div className="flex flex-col items-center px-2 sm:px-0">
+    <div className="flex flex-col items-center px-2 sm:px-0 overflow-hidden">
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white">Block Blast</h1>
 
@@ -832,7 +832,7 @@ export default function BlockBlast() {
       </div>
       
       {/* Mobile instructions */}
-      {isMobile() && (
+      {isMobile() && window.innerHeight > 700 && (
         <div className="mt-4 p-3 bg-slate-800/80 rounded-lg text-white text-sm text-center max-w-sm">
           <p>Touch and drag shapes to place them on the grid!</p>
         </div>
