@@ -206,7 +206,51 @@ const SHAPES = [
       { row: 2, col: 1 },
       { row: 2, col: 2 },
     ],
-  }
+  },
+  {
+    id: "big-L-shape-left",
+    color: "bg-rose-300",
+    blocks: [
+      { row: 0, col: 0 },
+      { row: 1, col: 0 },
+      { row: 2, col: 0 },
+      { row: 0, col: 1 },
+      { row: 0, col: 2 },
+    ],
+  },
+  {
+    id: "big-L-shape-right",
+    color: "bg-rose-400",
+    blocks: [
+      { row: 0, col: 2 },
+      { row: 0, col: 1 },
+      { row: 0, col: 0 },
+      { row: 1, col: 2 },
+      { row: 2, col: 2 },
+    ],
+  },
+  {
+    id: "big-L-shape-up",
+    color: "bg-rose-500",
+    blocks: [
+      { row: 0, col: 0 },
+      { row: 1, col: 0 },
+      { row: 2, col: 0 },
+      { row: 2, col: 1 },
+      { row: 2, col: 2 },
+    ],
+  },
+  {
+    id: "big-L-shape-down",
+    color: "bg-rose-600",
+    blocks: [
+      { row: 2, col: 0 },
+      { row: 2, col: 1 },
+      { row: 2, col: 2 },
+      { row: 1, col: 2 },
+      { row: 0, col: 2 },
+    ],
+  },
 ];
 
 function isMobile() {
