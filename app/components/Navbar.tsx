@@ -186,7 +186,7 @@ export default function Navbar() {
                   <div
                     className={`
                       transition-all duration-200
-                      ${openCategory === cat.label ? "max-h-40 opacity-100" : "max-h-0 opacity-0 overflow-hidden"}
+                      ${openCategory === cat.label ? "max-h-60 opacity-100" : "max-h-0 opacity-0 overflow-hidden"}
                     `}
                   >
                     <ul>
