@@ -3,13 +3,6 @@ import { useState, useRef, useEffect } from "react";
 
 const CATEGORIES = [
   {
-    label: "Card Games",
-    games: [
-      { label: "Solitaire", to: "/maybCardGames/solitaire" },
-      { label: "Blackjack", to: "/maybCardGames/blackjack" },
-    ],
-  },
-  {
     label: "Single Player Games",
     games: [
       { label: "O's & X's", to: "/maybCardGames/naughtsAndCrosses" },
@@ -17,12 +10,20 @@ const CATEGORIES = [
       { label: "Solitaire", to: "/maybCardGames/solitaire" },
       { label: "Blackjack", to: "/maybCardGames/blackjack" },
       { label: "Block Blast", to: "/maybCardGames/blockBlast" },
+      { label: "Tetris", to: "/maybCardGames/tetris" },
     ],
   },
   {
     label: "Two Player Games",
     games: [
       { label: "O's & X's", to: "/maybCardGames/naughtsAndCrosses" },
+    ],
+  },
+  {
+    label: "Card Games",
+    games: [
+      { label: "Solitaire", to: "/maybCardGames/solitaire" },
+      { label: "Blackjack", to: "/maybCardGames/blackjack" },
     ],
   },
 ];

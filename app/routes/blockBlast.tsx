@@ -269,7 +269,7 @@ export default function BlockBlast() {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(() => {
     if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem("highScore");
+      const saved = localStorage.getItem("mayb/blockBlastHighScore");
       return saved ? parseInt(saved) : 0;
     }
     return 0;
@@ -277,7 +277,7 @@ export default function BlockBlast() {
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem("highScore", String(highScore));
+      localStorage.setItem("mayb/blockBlastHighScore", String(highScore));
     }
   }, [highScore]);
 

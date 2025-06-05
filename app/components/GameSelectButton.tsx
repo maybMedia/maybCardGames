@@ -47,7 +47,7 @@ const GameSelectCard: React.FC<GameSelectButtonProps> = ({
       <div className="relative z-10 border-2 border-gray-500 rounded-3xl p-4 m-2 flex flex-col items-center justify-center text-gray-800 bg-gray-100 hover:bg-gray-200 hover:scale-105 transition duration-300 ease-in-out sm:max-w-sm min-h-64">
         <img src={imageUrl} alt={name} className="w-24 h-24 object-contain mb-2" />
         <h2 className="text-lg font-bold text-center">{name}</h2>
-        <p className="text-center text-sm flex-1">{description}</p>
+        <p className="text-center text-sm flex-1 sm:min-h-[60px]">{description}</p>
         <button
           className="mt-4 bg-blue-500 text-white rounded-full px-4 py-2 w-full hover:bg-blue-600 transition duration-300 ease-in-out"
           onClick={() => navigate(navigateTo, { viewTransition: true })}
