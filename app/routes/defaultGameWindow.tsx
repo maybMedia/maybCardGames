@@ -1,3 +1,13 @@
+import type { Route } from "./+types/home";
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Game" },
+    { name: "description", content: "A game description" },
+    // { content: "user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" }, // Uncomment if you want to disable zooming
+  ];
+}
+
 export default function GameWindow() {
   return (
     <div className="flex flex-col items-center min-h-screen pt-16 px-2 sm:px-0">

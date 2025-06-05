@@ -30,7 +30,7 @@ export default function Home() {
           description="A puzzle game where you create rows of blocks to clear them" 
           imageUrl="./gameIcons/blockBlast.png"
           navigateTo="/maybCardGames/blockBlast"
-          banner="Newest Release"/>
+          banner="Fan Favourite"/>
         <GameSelectButton 
           name="Solitaire" 
           description="A strategy card game played by one player" 
@@ -40,8 +40,13 @@ export default function Home() {
           name="Blackjack" 
           description="A game where you aim to get as close to 21 as possible" 
           imageUrl="./gameIcons/blackjack.png"
-          navigateTo="/maybCardGames/blackjack"
-          banner="Fan Favourite"/>
+          navigateTo="/maybCardGames/blackjack"/>
+        <GameSelectButton 
+          name="Tetris" 
+          description="A classic block game. Fit the blocks in the grid and clear rows!" 
+          imageUrl="./gameIcons/tetris.png"
+          navigateTo="/maybCardGames/tetris"
+          banner="Newest Release"/>
         <GameSelectButton 
           name="Naughts and Crosses" 
           description="Play with a friend or against the computer, try to get three in a row!" 
