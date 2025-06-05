@@ -67,7 +67,20 @@ export default function Tetris() {
   const [score, setScore] = useState(0);
   const [lines, setLines] = useState(0);
   const [level, setLevel] = useState(1);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem("mayb/tetrisHighScore");
+      return saved ? parseInt(saved) : 0;
+    }
+    return 0;
+  });
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem("mayb/tetrisHighScore", String(highScore));
+    }
+  }, [highScore]);
+
   const [clearedLines, setClearedLines] = useState<number[]>([]);
   const [isClearing, setIsClearing] = useState(false);
   const [pieceRotating, setPieceRotating] = useState(false);
