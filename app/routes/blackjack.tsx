@@ -16,7 +16,9 @@ export default function Blackjack() {
   const [blackjackAnimation, setBlackjackAnimation] = useState(false);
   const [drawnCard, setDrawnCard] = useState<string | null>(null); // Track the last drawn card
   const [bustAnimation, setBustAnimation] = useState<"player" | "dealer" | null>(null);
-  const [isDealing, setIsDealing] = useState(false); // Add this line
+  const [isDealing, setIsDealing] = useState(false);
+  const [dealerCardRevealed, setDealerCardRevealed] = useState(false); // Track if dealer's hole card is revealed
+  const [isFlipping, setIsFlipping] = useState(false); // Track if hole card is currently flipping
 
   function generateDeck() {
     const suits = ["♠", "♥", "♦", "♣"];
@@ -52,6 +54,14 @@ export default function Blackjack() {
     return hand.length === 2 && calculateScore(hand) === 21;
   }
 
+  function getDealerVisibleScore() {
+    if (!dealerCardRevealed && dealerHand.length >= 2) {
+      // Only calculate score for the first card when hole card is hidden
+      return calculateScore([dealerHand[0]]);
+    }
+    return calculateScore(dealerHand);
+  }
+
   function dealInitialCards() {
     const shuffledDeck = [...deck].sort(() => Math.random() - 0.5);
     const newDeck = [...shuffledDeck];
@@ -62,15 +72,17 @@ export default function Blackjack() {
     setPlayerHand([]);
     setDealerHand([]);
     setMessage("");
-    setIsDealing(true); // Set dealing state
+    setIsDealing(true);
+    setDealerCardRevealed(false); // Reset dealer card visibility
+    setIsFlipping(false); // Reset flip animation
 
     function drawCardForPlayer() {
       if (newPlayerHand.length < 2) {
         const newCard = newDeck.pop()!;
         newPlayerHand.push(newCard);
         setPlayerHand([...newPlayerHand]);
-        setDrawnCard(newCard); // Animate the drawn card
-        setTimeout(drawCardForPlayer, 500); // Delay for the next card
+        setDrawnCard(newCard);
+        setTimeout(drawCardForPlayer, 500);
       } else {
         drawCardForDealer();
       }
@@ -81,8 +93,8 @@ export default function Blackjack() {
         const newCard = newDeck.pop()!;
         newDealerHand.push(newCard);
         setDealerHand([...newDealerHand]);
-        setDrawnCard(newCard); // Animate the drawn card
-        setTimeout(drawCardForDealer, 500); // Delay for the next card
+        setDrawnCard(newCard);
+        setTimeout(drawCardForDealer, 500);
       } else {
         finalizeGameStart();
       }
@@ -90,17 +102,40 @@ export default function Blackjack() {
 
     function finalizeGameStart() {
       setDeck(newDeck);
-      setDrawnCard(null); // Reset the drawn card animation
-      setIsDealing(false); // Cards have finished dealing
+      setDrawnCard(null);
+      setIsDealing(false);
 
-      if (isBlackjack(newDealerHand)) {
-        setMessage("Dealer blackjack! You lose.");
-      } else if (isBlackjack(newPlayerHand)) {
-        setBlackjackAnimation(true);
+      // Check for player blackjack first
+      if (isBlackjack(newPlayerHand)) {
+        // Reveal dealer's hole card to check for dealer blackjack
+        setIsFlipping(true);
+        setTimeout(() => {
+          setDealerCardRevealed(true);
+          setIsFlipping(false);
+        }, 300);
+        setTimeout(() => {
+          if (isBlackjack(newDealerHand)) {
+            setMessage("Both have blackjack! It's a push (tie).");
+          } else {
+            setBlackjackAnimation(true);
+          }
+        }, 800);
+      } else {
+        // Check for dealer blackjack (peek at hole card)
+        if (isBlackjack(newDealerHand)) {
+          setIsFlipping(true);
+          setTimeout(() => {
+            setDealerCardRevealed(true);
+            setIsFlipping(false);
+          }, 300);
+          setTimeout(() => {
+            setMessage("Dealer blackjack! You lose.");
+          }, 800);
+        }
       }
     }
 
-    drawCardForPlayer(); // Start dealing cards to the player
+    drawCardForPlayer();
   }
 
   function hit() {
@@ -112,69 +147,97 @@ export default function Blackjack() {
 
     setDeck(newDeck);
     setPlayerHand(newHand);
-    setDrawnCard(newCard); // Track the drawn card
+    setDrawnCard(newCard);
 
     if (calculateScore(newHand) > 21) {
-      setBustAnimation("player"); // Trigger player bust animation
+      setBustAnimation("player");
+      // Reveal dealer's hole card when player busts
+      setIsFlipping(true);
+      setTimeout(() => {
+        setDealerCardRevealed(true);
+        setIsFlipping(false);
+      }, 300);
       setTimeout(() => {
         setMessage("You busted! Dealer wins.");
-        setBustAnimation(null); // Reset animation after it finishes
-      }, 1000); // Match the animation duration
+        setBustAnimation(null);
+      }, 1000);
     }
   }
 
   function stand() {
     if (playerHand.length === 0 || isDealing) return;
 
-    let dealerScore = calculateScore(dealerHand);
-    let newDeck = [...deck];
-    let newDealerHand = [...dealerHand];
+    // Reveal dealer's hole card with animation
+    setIsFlipping(true);
+    setTimeout(() => {
+      setDealerCardRevealed(true);
+      setIsFlipping(false);
+    }, 300);
+    
+    setTimeout(() => {
+      let dealerScore = calculateScore(dealerHand);
+      let newDeck = [...deck];
+      let newDealerHand = [...dealerHand];
 
-    function drawDealerCard() {
-      if (dealerScore < 17) {
-        const newCard = newDeck.pop()!;
-        newDealerHand.push(newCard);
-        setDealerHand([...newDealerHand]); // Update dealer's hand
-        setDrawnCard(newCard); // Animate the drawn card
-        dealerScore = calculateScore(newDealerHand);
+      function drawDealerCard() {
+        if (dealerScore < 17) {
+          const newCard = newDeck.pop()!;
+          newDealerHand.push(newCard);
+          setDealerHand([...newDealerHand]);
+          setDrawnCard(newCard);
+          dealerScore = calculateScore(newDealerHand);
 
-        setTimeout(drawDealerCard, 500); // Delay for the next card
-      } else {
-        setDeck(newDeck);
-
-        const playerScore = calculateScore(playerHand);
-
-        if (dealerScore > 21) {
-          setBustAnimation("dealer"); // Trigger dealer bust animation
-          setTimeout(() => {
-            setMessage("Dealer busted! You win!");
-            setBustAnimation(null); // Reset animation after it finishes
-          }, 1000); // Match the animation duration
-        } else if (playerScore > dealerScore) {
-          setMessage("You win!");
-        } else if (playerScore < dealerScore) {
-          setMessage("Dealer wins!");
+          setTimeout(drawDealerCard, 500);
         } else {
-          setMessage("It's a tie!");
+          setDeck(newDeck);
+
+          const playerScore = calculateScore(playerHand);
+
+          if (dealerScore > 21) {
+            setBustAnimation("dealer");
+            setTimeout(() => {
+              setMessage("Dealer busted! You win!");
+              setBustAnimation(null);
+            }, 1000);
+          } else if (playerScore > dealerScore) {
+            setMessage("You win!");
+          } else if (playerScore < dealerScore) {
+            setMessage("Dealer wins!");
+          } else {
+            setMessage("It's a tie!");
+          }
         }
       }
-    }
 
-    drawDealerCard(); // Start drawing cards for the dealer
+      drawDealerCard();
+    }, 600); // Delay to show the hole card reveal animation
   }
 
   function resetGame() {
-    setDrawnCard(null); // Reset the drawn card animation
-    dealInitialCards(); // Redeal the cards with animation
+    setDrawnCard(null);
+    dealInitialCards();
   }
 
   function getCardColor(card: string) {
-    const suit = card.slice(-1); // Get the last character (suit)
+    const suit = card.slice(-1);
     return suit === "♥" || suit === "♦" ? "text-red-500" : "text-black";
   }
 
   return (
     <div className="flex flex-col items-center px-2 sm:px-0">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes flip {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+          }
+          .animate-flip {
+            animation: flip 0.6s ease-in-out;
+            transform-style: preserve-3d;
+          }
+        `
+      }} />
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 sm:p-5 text-center">Blackjack</h1>
         <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video poker-table flex flex-col justify-between rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto">
@@ -183,7 +246,7 @@ export default function Blackjack() {
               <button
                 className="bg-blue-500 text-white w-full max-w-48 px-4 py-2 rounded hover:bg-blue-400 hover:scale-105 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
-                  setDrawnCard(null); // Reset animation
+                  setDrawnCard(null);
                   dealInitialCards();
                 }}
                 disabled={isDealing}
@@ -196,16 +259,22 @@ export default function Blackjack() {
               {/* Dealer's Hand */}
               <div className="flex flex-col items-center mb-2 sm:mb-4">
                 <h2 className="text-lg font-bold">Dealer's Hand</h2>
-                <p className="">Score: {calculateScore(dealerHand)}</p>
+                <p className="">Score: {getDealerVisibleScore()}</p>
                 <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
                   {dealerHand.map((card, index) => (
                     <div
                       key={index}
-                      className={`w-12 h-16 bg-white flex items-center justify-center rounded shadow-md ${
+                      className={`w-12 h-16 flex items-center justify-center rounded shadow-md transition-transform duration-300 ${
                         card === drawnCard ? "animate-draw" : ""
-                      } ${bustAnimation === "dealer" ? "animate-explode" : ""} ${getCardColor(card)}`}
+                      } ${bustAnimation === "dealer" ? "animate-explode" : ""} ${
+                        index === 1 && isFlipping ? "animate-flip" : ""
+                      } ${
+                        index === 1 && !dealerCardRevealed 
+                          ? "bg-blue-900 text-white" 
+                          : `bg-white ${getCardColor(card)}`
+                      }`}
                     >
-                      {card}
+                      {index === 1 && !dealerCardRevealed ? "?" : card}
                     </div>
                   ))}
                 </div>
@@ -263,8 +332,8 @@ export default function Blackjack() {
               <button
                 className="bg-blue-300 text-white px-4 py-2 rounded hover:bg-blue-400 transition duration-300"
                 onClick={() => {
-                  setBlackjackAnimation(false); // Stop the animation
-                  resetGame(); // Start a new hand
+                  setBlackjackAnimation(false);
+                  resetGame();
                 }}
               >
                 New Hand
