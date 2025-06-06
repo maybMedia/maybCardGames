@@ -55,6 +55,9 @@ export default function GameWindow() {
   // Add state to track hovered cell during placement
   const [hoverCell, setHoverCell] = useState<{ row: number; col: number } | null>(null);
 
+  // New state for local multiplayer turn transition
+  const [showTransition, setShowTransition] = useState(false);
+
   // Initialize new game
   const initializeGame = (mode: string) => {
     setPlayerMode(mode);
@@ -327,18 +330,28 @@ export default function GameWindow() {
         );
         return;
       }
+      // In local multiplayer, allow player to go again on hit (standard rules)
+      if (playerMode === 'local') {
+        // Do not switch player, allow another attack
+        return;
+      }
     } else {
       // Switch turns on miss
       if (playerMode === 'local') {
-        setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-        setMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn - Attack!`);
+        setShowTransition(true); // Show transition screen
       } else {
         setCurrentPlayer(2);
         setMessage('Computer\'s turn...');
-        // Computer attack after delay
         setTimeout(computerAttack, 1000);
       }
     }
+  };
+
+  // Handler for local multiplayer transition screen
+  const handleNextTurn = () => {
+    setShowTransition(false);
+    setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+    setMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn - Attack!`);
   };
 
   // Computer AI attack
@@ -445,6 +458,11 @@ export default function GameWindow() {
     isOwnBoard: boolean,
     playerIndex: number
   ) => {
+    // For attack grid, playerIndex is the *attacker* (the current player)
+    // For own board, playerIndex is the player whose ships are shown
+
+    // For attack grid, show attackBoards[playerIndex]
+    // For own board, show boards[playerIndex]
     const board = isOwnBoard ? boards[playerIndex] : attackBoards[playerIndex];
     const cell = board[row][col];
 
@@ -490,6 +508,20 @@ export default function GameWindow() {
       cellClass += 'bg-blue-100 hover:bg-blue-200';
     }
 
+    // --- FIX: For attack grid, playerIndex is always the attacker (currentPlayer-1) ---
+    // Only allow attack if:
+    // - phase is battle
+    // - this is the attack grid (not own board)
+    // - playerIndex === currentPlayer-1 (the current player is viewing their attack grid)
+    // - the cell is EMPTY (not already attacked)
+    const canAttack =
+      phase === 'battle' &&
+      !isOwnBoard &&
+      playerIndex === currentPlayer - 1 &&
+      cell === EMPTY &&
+      !gameOver &&
+      (!showTransition || playerMode !== 'local'); // Prevent attack during transition
+
     return (
       <div
         key={`${row}-${col}`}
@@ -497,11 +529,7 @@ export default function GameWindow() {
         onClick={() => {
           if (phase === 'placement' && isOwnBoard) {
             handlePlacementClick(row, col);
-          } else if (
-            phase === 'battle' &&
-            !isOwnBoard &&
-            currentPlayer === playerIndex + 1
-          ) {
+          } else if (canAttack) {
             handleAttack(row, col);
           }
         }}
@@ -541,6 +569,24 @@ export default function GameWindow() {
     </div>
   );
 
+  // Add this function before your return statement:
+  const renderTransitionScreen = () => (
+    <div className="flex flex-col items-center justify-center h-full w-full rounded-2xl">
+      <div className="bg-blue-900 bg-opacity-90 rounded-2xl p-8 flex flex-col items-center">
+        <h2 className="text-2xl font-bold mb-4">Pass the device!</h2>
+        <p className="mb-6 text-lg">
+          {`Player ${currentPlayer === 1 ? 2 : 1}, it's your turn.`}
+        </p>
+        <button
+          onClick={handleNextTurn}
+          className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-lg text-lg font-semibold transition-colors"
+        >
+          Start Turn
+        </button>
+      </div>
+    </div>
+  );
+
   if (gameMode === 'menu') {
     return (
       <div className="flex flex-col items-center px-2 sm:px-0">
@@ -576,7 +622,7 @@ export default function GameWindow() {
     <div className="flex flex-col items-center px-2 sm:px-0">
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 text-center">Battleships</h1>
-        <div className="w-4/6 aspect-video bg-gradient-to-b from-blue-900 to-blue-700 rounded-2xl p-4 text-white">
+        <div className="w-4/6 aspect-video bg-gradient-to-b from-blue-900 to-blue-700 rounded-2xl p-4 text-white relative">
           
           {/* Game Status */}
           <div className="text-center mb-4">
@@ -635,10 +681,19 @@ export default function GameWindow() {
                   {renderGrid(0, false)}
                 </div>
               ) : (
-                <div className="flex justify-center">
-                  {currentPlayer === 1 ? renderGrid(1, false) : renderGrid(0, false)}
+                // Local multiplayer: show both boards, but only for the current player
+                <div className="flex flex-col lg:flex-row gap-4 justify-center items-start">
+                  {renderGrid(currentPlayer - 1, true)}
+                  {renderGrid(currentPlayer - 1, false)}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Local multiplayer transition overlay */}
+          {playerMode === 'local' && phase === 'battle' && showTransition && (
+            <div className="absolute inset-0 flex items-center justify-center z-50 bg-blue-950 bg-opacity-80 rounded-2xl">
+              {renderTransitionScreen()}
             </div>
           )}
 
