@@ -612,7 +612,6 @@ export default function GameWindow() {
     </div>
   );
 
-  // Add this function before your return statement:
   const renderTransitionScreen = () => (
     <div className="flex flex-col items-center justify-center h-full w-full rounded-2xl">
       <div className="bg-blue-900 bg-opacity-90 rounded-2xl p-8 flex flex-col items-center">
@@ -665,7 +664,7 @@ export default function GameWindow() {
     <div className="flex flex-col items-center px-2 sm:px-0">
       <div className="container mx-auto flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold p-4 text-center">Battleships</h1>
-        <div className="w-4/6 aspect-video bg-gradient-to-b from-blue-900 to-blue-700 rounded-2xl p-4 text-white relative">
+        <div className="sm:w-4/6 w-full aspect-[4/5] sm:aspect-video bg-gradient-to-b from-blue-900 to-blue-700 rounded-2xl p-4 text-white relative">
           
           {/* Game Status */}
           <div className="text-center mb-4">
@@ -719,15 +718,17 @@ export default function GameWindow() {
           {phase === 'battle' && (
             <div className="space-y-4">
               {playerMode === 'computer' ? (
-                <div className="flex flex-col lg:flex-row gap-4 justify-center items-start">
-                  {renderGrid(0, true)}
-                  {renderGrid(0, false)}
+                <div className="flex flex-col lg:flex-row gap-4 justify-center items-center">
+                  {/* On mobile (flex-col), show enemy waters first */}
+                  <div className="order-1 lg:order-none">{renderGrid(0, false)}</div>
+                  <div className="order-2 lg:order-none">{renderGrid(0, true)}</div>
                 </div>
               ) : (
                 // Local multiplayer: show both boards, but only for the current player
-                <div className="flex flex-col lg:flex-row gap-4 justify-center items-start">
-                  {renderGrid(currentPlayer - 1, true)}
-                  {renderGrid(currentPlayer - 1, false)}
+                <div className="flex flex-col lg:flex-row gap-4 justify-center items-center">
+                  {/* On mobile (flex-col), show enemy waters first */}
+                  <div className="order-1 lg:order-none">{renderGrid(currentPlayer - 1, false)}</div>
+                  <div className="order-2 lg:order-none">{renderGrid(currentPlayer - 1, true)}</div>
                 </div>
               )}
             </div>
