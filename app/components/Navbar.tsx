@@ -11,12 +11,14 @@ const CATEGORIES = [
       { label: "Blackjack", to: "/maybCardGames/blackjack" },
       { label: "Block Blast", to: "/maybCardGames/blockBlast" },
       { label: "Tetris", to: "/maybCardGames/tetris" },
+      { label: "Battleships", to: "/maybCardGames/battleships" },
     ],
   },
   {
     label: "Two Player Games",
     games: [
       { label: "O's & X's", to: "/maybCardGames/naughtsAndCrosses" },
+      { label: "Battleships", to: "/maybCardGames/battleships" },
     ],
   },
   {

@@ -57,6 +57,12 @@ export default function Home() {
           description="A classic game where you control a snake to eat food and grow" 
           imageUrl="./gameIcons/snake.png"
           navigateTo="/maybCardGames/snake"/>
+        <GameSelectButton 
+          name="Battleships"
+          description="A strategic guessing game where you sink your opponent's ships" 
+          imageUrl="./gameIcons/battleships.png"
+          navigateTo="/maybCardGames/battleships"
+          banner="Coming Soon"/>
       </div>
     </div>
   );
