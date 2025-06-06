@@ -29,8 +29,7 @@ export default function Home() {
           name="Block Blast"
           description="A puzzle game where you create rows of blocks to clear them" 
           imageUrl="./gameIcons/blockBlast.png"
-          navigateTo="/maybCardGames/blockBlast"
-          banner="Fan Favourite"/>
+          navigateTo="/maybCardGames/blockBlast"/>
         <GameSelectButton 
           name="Solitaire" 
           description="A strategy card game played by one player" 
@@ -46,6 +45,12 @@ export default function Home() {
           description="A classic block game. Fit the blocks in the grid and clear rows!" 
           imageUrl="./gameIcons/tetris.png"
           navigateTo="/maybCardGames/tetris"
+          banner="Fan Favourite"/>
+        <GameSelectButton 
+          name="Battleships"
+          description="A strategic guessing game where you sink your opponent's ships" 
+          imageUrl="./gameIcons/battleships.png"
+          navigateTo="/maybCardGames/battleships"
           banner="Newest Release"/>
         <GameSelectButton 
           name="Naughts and Crosses" 
@@ -57,12 +62,6 @@ export default function Home() {
           description="A classic game where you control a snake to eat food and grow" 
           imageUrl="./gameIcons/snake.png"
           navigateTo="/maybCardGames/snake"/>
-        <GameSelectButton 
-          name="Battleships"
-          description="A strategic guessing game where you sink your opponent's ships" 
-          imageUrl="./gameIcons/battleships.png"
-          navigateTo="/maybCardGames/battleships"
-          banner="Coming Soon"/>
       </div>
     </div>
   );
