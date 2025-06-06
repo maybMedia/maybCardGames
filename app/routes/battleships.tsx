@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
@@ -57,6 +57,10 @@ export default function GameWindow() {
 
   // New state for local multiplayer turn transition
   const [showTransition, setShowTransition] = useState(false);
+
+  // Animation state for hit/miss
+  const [animatingCell, setAnimatingCell] = useState<{ row: number; col: number; type: 'hit' | 'miss'; playerIndex: number } | null>(null);
+  const animationTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize new game
   const initializeGame = (mode: string) => {
@@ -268,83 +272,97 @@ export default function GameWindow() {
     // Check if already attacked this cell
     if (attackBoards[attackerIndex][row][col] !== EMPTY) return;
 
-    const newAttackBoards = [...attackBoards];
-    const newBoards = [...boards];
     const isHit = boards[defenderIndex][row][col] === SHIP;
 
-    newAttackBoards[attackerIndex][row][col] = isHit ? HIT : MISS;
+    // Set animation state
+    setAnimatingCell({
+      row,
+      col,
+      type: isHit ? 'hit' : 'miss',
+      playerIndex: attackerIndex
+    });
 
-    // Mark hit on defender's board
-    if (isHit) {
-      newBoards[defenderIndex][row][col] = HIT;
-    }
+    // Delay the actual update for animation
+    if (animationTimeout.current) clearTimeout(animationTimeout.current);
+    animationTimeout.current = setTimeout(() => {
+      const newAttackBoards = [...attackBoards];
+      const newBoards = [...boards];
 
-    setAttackBoards(newAttackBoards);
-    setBoards(newBoards);
-
-    let sunkMessage = '';
-    if (isHit && isShipSunk(newBoards[defenderIndex], row, col)) {
-      // Try to find the ship size for message
-      const shipCells: { row: number; col: number }[] = [];
-      // Check horizontal
-      let left = col;
-      while (left > 0 && newBoards[defenderIndex][row][left - 1] === HIT) left--;
-      let right = col;
-      while (right < GRID_SIZE - 1 && newBoards[defenderIndex][row][right + 1] === HIT) right++;
-      if (right - left >= 1) {
-        for (let i = left; i <= right; i++) shipCells.push({ row, col: i });
-      } else {
-        // Check vertical
-        let top = row;
-        while (top > 0 && newBoards[defenderIndex][top - 1][col] === HIT) top--;
-        let bottom = row;
-        while (bottom < GRID_SIZE - 1 && newBoards[defenderIndex][bottom + 1][col] === HIT) bottom++;
-        for (let i = top; i <= bottom; i++) shipCells.push({ row: i, col });
+      newAttackBoards[attackerIndex][row][col] = isHit ? HIT : MISS;
+      if (isHit) {
+        newBoards[defenderIndex][row][col] = HIT;
       }
-      const shipSize = shipCells.length;
-      const shipType = SHIPS.find(s => s.size === shipSize)?.name || `${shipSize}-cell ship`;
-      sunkMessage = ` Sunk the ${shipType}!`;
-    }
 
-    if (isHit) {
-      setMessage(
-        (playerMode === 'computer' && currentPlayer === 1
-          ? 'Hit!'
-          : playerMode === 'local'
-          ? `Player ${currentPlayer} hit!`
-          : 'Computer hit!') + sunkMessage + (sunkMessage ? ' ' : '') + (sunkMessage && 'Go again!')
-      );
+      setAttackBoards(newAttackBoards);
+      setBoards(newBoards);
 
-      // Check for win
-      const remainingShips = newBoards[defenderIndex].flat().filter(cell => cell === SHIP).length;
+      let sunkMessage = '';
+      if (isHit && isShipSunk(newBoards[defenderIndex], row, col)) {
+        // Try to find the ship size for message
+        const shipCells: { row: number; col: number }[] = [];
+        // Check horizontal
+        let left = col;
+        while (left > 0 && newBoards[defenderIndex][row][left - 1] === HIT) left--;
+        let right = col;
+        while (right < GRID_SIZE - 1 && newBoards[defenderIndex][row][right + 1] === HIT) right++;
+        if (right - left >= 1) {
+          for (let i = left; i <= right; i++) shipCells.push({ row, col: i });
+        } else {
+          // Check vertical
+          let top = row;
+          while (top > 0 && newBoards[defenderIndex][top - 1][col] === HIT) top--;
+          let bottom = row;
+          while (bottom < GRID_SIZE - 1 && newBoards[defenderIndex][bottom + 1][col] === HIT) bottom++;
+          for (let i = top; i <= bottom; i++) shipCells.push({ row: i, col });
+        }
+        const shipSize = shipCells.length;
+        const shipType = SHIPS.find(s => s.size === shipSize)?.name || `${shipSize}-cell ship`;
+        sunkMessage = ` Sunk the ${shipType}!`;
+      }
 
-      if (remainingShips === 0) {
-        setGameOver(true);
-        setWinner(currentPlayer);
+      if (isHit) {
         setMessage(
           (playerMode === 'computer' && currentPlayer === 1
-            ? 'You won!'
-            : playerMode === 'computer'
-            ? 'Computer won!'
-            : `Player ${currentPlayer} wins!`)
+            ? 'Hit!'
+            : playerMode === 'local'
+            ? `Player ${currentPlayer} hit!`
+            : 'Computer hit!') + sunkMessage + (sunkMessage ? ' ' : '') + (sunkMessage && 'Go again!')
         );
-        return;
-      }
-      // In local multiplayer, allow player to go again on hit (standard rules)
-      if (playerMode === 'local') {
-        // Do not switch player, allow another attack
-        return;
-      }
-    } else {
-      // Switch turns on miss
-      if (playerMode === 'local') {
-        setShowTransition(true); // Show transition screen
+
+        // Check for win
+        const remainingShips = newBoards[defenderIndex].flat().filter(cell => cell === SHIP).length;
+
+        if (remainingShips === 0) {
+          setGameOver(true);
+          setWinner(currentPlayer);
+          setMessage(
+            (playerMode === 'computer' && currentPlayer === 1
+              ? 'You won!'
+              : playerMode === 'computer'
+              ? 'Computer won!'
+              : `Player ${currentPlayer} wins!`)
+          );
+          setAnimatingCell(null);
+          return;
+        }
+        // In local multiplayer, allow player to go again on hit (standard rules)
+        if (playerMode === 'local') {
+          setAnimatingCell(null);
+          return;
+        }
       } else {
-        setCurrentPlayer(2);
-        setMessage('Computer\'s turn...');
-        setTimeout(computerAttack, 1000);
+        // Switch turns on miss
+        if (playerMode === 'local') {
+          setShowTransition(true); // Show transition screen
+          setAnimatingCell(null);
+        } else {
+          setCurrentPlayer(2);
+          setMessage('Computer\'s turn...');
+          setAnimatingCell(null);
+          setTimeout(computerAttack, 1000);
+        }
       }
-    }
+    }, 400); // Animation duration
   };
 
   // Handler for local multiplayer transition screen
@@ -491,8 +509,22 @@ export default function GameWindow() {
       );
     }
 
+    // Animation logic
+    let animate = false;
+    let animateType: 'hit' | 'miss' | null = null;
+    if (
+      animatingCell &&
+      animatingCell.row === row &&
+      animatingCell.col === col &&
+      animatingCell.playerIndex === playerIndex &&
+      !isOwnBoard
+    ) {
+      animate = true;
+      animateType = animatingCell.type;
+    }
+
     let cellClass =
-      'w-6 h-6 sm:w-8 sm:h-8 border border-blue-300 cursor-pointer flex items-center justify-center text-xs font-bold ';
+      'w-6 h-6 sm:w-8 sm:h-8 border border-blue-300 cursor-pointer flex items-center justify-center text-xs font-bold transition-all duration-300 ';
 
     if (isPlacementPreview) {
       cellClass += 'bg-green-400 hover:bg-green-300';
@@ -506,6 +538,14 @@ export default function GameWindow() {
       cellClass += 'bg-blue-300';
     } else {
       cellClass += 'bg-blue-100 hover:bg-blue-200';
+    }
+
+    // Animation classes
+    if (animate && animateType === 'hit') {
+      cellClass += ' animate-bounce bg-yellow-400';
+    }
+    if (animate && animateType === 'miss') {
+      cellClass += ' animate-pulse bg-blue-400';
     }
 
     // --- FIX: For attack grid, playerIndex is always the attacker (currentPlayer-1) ---
@@ -546,6 +586,9 @@ export default function GameWindow() {
       >
         {cell === HIT && '💥'}
         {cell === MISS && '💧'}
+        {/* Animate emoji for hit/miss */}
+        {animate && animateType === 'hit' && <span className="text-2xl animate-bounce">💥</span>}
+        {animate && animateType === 'miss' && <span className="text-2xl animate-pulse">💧</span>}
       </div>
     );
   };
