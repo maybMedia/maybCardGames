@@ -489,7 +489,7 @@ export default function Tetris() {
       
       <main className="flex flex-col items-center w-full flex-1">
         <div className="container mx-auto flex flex-col items-center justify-center">
-          <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white animate-pulse">Tetris</h1>
+          <h1 className="text-2xl font-bold p-4 text-center text-blue-500 drop-shadow-lg">Tetris</h1>
           <div className={`w-full sm:w-4/6 aspect-[5/7] ${isMobileLayout ? "" : "sm:aspect-video "}tetris-background flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto`}>
             
             {/* Score Popup */}

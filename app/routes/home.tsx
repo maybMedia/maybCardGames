@@ -1,5 +1,6 @@
 import GameSelectButton from "~/components/GameSelectButton";
 import type { Route } from "./+types/home";
+import { motion } from "framer-motion";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -8,10 +9,31 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+const waveText = "Select your game!";
+
 export default function Home() {
   return (
     <div className="flex flex-col items-center min-h-full pt-6 pb-8 px-4">
-      <h1 className="text-2xl font-bold">Select your game!</h1>
+      <h1 className="text-2xl font-bold text-center text-white drop-shadow-lg mb-2 flex justify-center">
+        {waveText.split("").map((char, i) => (
+          <motion.span
+            key={i}
+            className="inline-block"
+            animate={{
+              y: [0, -12, 0],
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              repeatType: "loop",
+              delay: i * 0.07,
+              ease: "easeInOut",
+            }}
+          >
+            {char === " " ? "\u00A0" : char}
+          </motion.span>
+        ))}
+      </h1>
       <div
         className="
           grid

@@ -633,7 +633,7 @@ export default function GameWindow() {
     return (
       <div className="flex flex-col items-center px-2 sm:px-0">
         <div className="container mx-auto flex flex-col items-center justify-center">
-          <h1 className="text-2xl font-bold p-4 text-center">Battleships</h1>
+          <h1 className="text-2xl font-bold p-4 text-center text-blue-500 drop-shadow-lg">Battleships</h1>
           <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video bg-gradient-to-b from-blue-900 to-blue-700 flex flex-col items-center justify-center rounded-2xl p-4 text-white">
             <div className="flex flex-col items-center justify-center h-full space-y-6">
               <h2 className="text-xl sm:text-2xl font-semibold mb-4">Choose Game Mode</h2>
@@ -663,7 +663,7 @@ export default function GameWindow() {
   return (
     <div className="flex flex-col items-center px-2 sm:px-0">
       <div className="container mx-auto flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold p-4 text-center">Battleships</h1>
+        <h1 className="text-2xl font-bold p-4 text-center text-yellow-300 drop-shadow-lg">Battleships</h1>
         <div className="sm:w-4/6 w-full aspect-[4/5] sm:aspect-video bg-gradient-to-b from-blue-900 to-blue-700 rounded-2xl p-4 text-white relative">
           
           {/* Game Status */}
