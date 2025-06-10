@@ -20,7 +20,11 @@ const GameSelectCard: React.FC<GameSelectButtonProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="relative w-full max-w-xs">
+    <motion.div
+      whileHover={{ scale: 1.04, boxShadow: "0 8px 32px rgba(30,64,175,0.12)" }}
+      whileTap={{ scale: 0.98 }}
+      className="relative w-full max-w-xs"
+    >
       {/* Shadow Ribbon Tail - behind all content */}
       {banner && (
         <div
@@ -37,25 +41,27 @@ const GameSelectCard: React.FC<GameSelectButtonProps> = ({
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="absolute top-4 left-0 z-20 overflow-visible"
         >
-          <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 whitespace-nowrap rounded-br-lg shadow-md">
+          <div className="bg-gradient-to-r from-red-500 to-yellow-400 text-white text-xs font-bold px-3 py-1 whitespace-nowrap rounded-br-lg shadow-md drop-shadow">
             {banner}
           </div>
         </motion.div>
       )}
 
       {/* Main Card */}
-      <div className="relative z-10 border-2 border-gray-500 rounded-3xl p-4 m-2 flex flex-col items-center justify-center text-gray-800 bg-gray-100 hover:bg-gray-200 hover:scale-105 transition duration-300 ease-in-out sm:max-w-sm min-h-64">
-        <img src={imageUrl} alt={name} className="w-24 h-24 object-contain mb-2" />
-        <h2 className="text-lg font-bold text-center">{name}</h2>
-        <p className="text-center text-sm flex-1 sm:min-h-[60px]">{description}</p>
+      <div className="relative z-10 border border-blue-200 rounded-3xl p-5 m-2 flex flex-col items-center justify-center text-blue-900 bg-white/80 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300 shadow-lg backdrop-blur-md min-h-64">
+        <div className="w-24 h-24 flex items-center justify-center mb-2 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 shadow-inner">
+          <img src={imageUrl} alt={name} className="w-16 h-16 object-contain drop-shadow" />
+        </div>
+        <h2 className="text-lg font-extrabold text-center mb-1 tracking-tight">{name}</h2>
+        <p className="text-center text-sm flex-1 sm:min-h-[60px] opacity-80 mb-2">{description}</p>
         <button
-          className="mt-4 bg-blue-500 text-white rounded-full px-4 py-2 w-full hover:bg-blue-600 transition duration-300 ease-in-out"
+          className="mt-3 bg-blue-600 text-white rounded-full px-5 py-2 w-full font-semibold shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-200"
           onClick={() => navigate(navigateTo, { viewTransition: true })}
         >
           Play
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
