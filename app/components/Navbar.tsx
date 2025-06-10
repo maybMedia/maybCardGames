@@ -12,6 +12,7 @@ const CATEGORIES = [
       { label: "Block Blast", to: "/maybCardGames/blockBlast" },
       { label: "Tetris", to: "/maybCardGames/tetris" },
       { label: "Battleships", to: "/maybCardGames/battleships" },
+      { label: "Marty Crush", to: "/maybCardGames/martyCrush" },
     ],
   },
   {
