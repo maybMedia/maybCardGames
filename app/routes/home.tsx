@@ -50,13 +50,14 @@ export default function Home() {
           name="Battleships"
           description="A strategic guessing game where you sink your opponent's ships" 
           imageUrl="./gameIcons/battleships.png"
-          navigateTo="/maybCardGames/battleships"/>
+          navigateTo="/maybCardGames/battleships"
+          banner="Newest Release"/>
         <GameSelectButton 
           name="Marty Crush"
           description="Line up Marty and his friends to clear the screen!"
           imageUrl="./gameIcons/martyCrush.png"
           navigateTo="/maybCardGames/martyCrush"
-          banner="Newest Release"/>
+          banner="Coming Soon!"/>
         <GameSelectButton 
           name="Naughts and Crosses" 
           description="Play with a friend or against the computer, try to get three in a row!" 
