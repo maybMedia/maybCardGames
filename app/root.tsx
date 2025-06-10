@@ -25,7 +25,7 @@ export const links: Route.LinksFunction = () => [
   {
     rel: "icon",
     type: "image/png",
-    href: "/maybCardGames/favicon.ico",
+    href: "./favicon.ico",
   },
 ];
 
@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 font-sans">
         <Navbar />
         <div className="main-scroll-area flex-1 overflow-y-auto pt-16">
           {children}
