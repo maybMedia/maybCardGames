@@ -47,15 +47,17 @@ const PIECE_TYPES = Object.keys(PIECES);
 export default function Tetris() {
   if(isMobile()){
     return (
-      <div className="flex flex-col items-center pt-16 px-2 sm:px-0">
-        <div className="container mx-auto flex flex-col items-center justify-center">
-          <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video tetris-background flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-hidden">
-            <h1 className="text-2xl font-bold mb-4 text-center">Tetris</h1>
-            <div className="text-lg font-semibold text-center">
-              Game not yet supported on mobile devices.
+      <div className="w-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 flex flex-col items-center">
+        <main className="flex flex-col items-center w-full flex-1 pt-10">
+          <div className="container mx-auto flex flex-col items-center justify-center">
+            <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video tetris-background flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-hidden">
+              <h1 className="text-2xl font-bold mb-4 text-center">Tetris</h1>
+              <div className="text-lg font-semibold text-center">
+                Game not yet supported on mobile devices.
+              </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -483,144 +485,146 @@ export default function Tetris() {
   };
 
   return (
-    <div className="flex flex-col items-center px-2 sm:px-0 bg-gray-900">
+    <div className=" w-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 flex flex-col items-center">
       
-      <div className="container mx-auto flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white animate-pulse">Tetris</h1>
-        <div className={`w-full sm:w-4/6 aspect-[5/7] ${isMobileLayout ? "" : "sm:aspect-video "}tetris-background flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto`}>
-          
-          {/* Score Popup */}
-          {scorePopup.show && (
-            <div 
-              className="absolute top-1/6 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
-              style={{ animation: 'scorePopup 1s ease-out forwards' }}
-            >
-              <div className="bg-yellow-400 opacity-40 text-black px-4 py-2 rounded-lg font-bold text-xl shadow-lg">
-                {scorePopup.type}
-                {scorePopup.points > 0 && (
-                  <div className="text-sm">+{scorePopup.points}</div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {!gameStarted && !gameOver && (
-            <div onClick={() => setGameStarted(true)} className="cursor-pointer">
-              <div className="absolute inset-0 bg-black opacity-50 rounded-2xl"></div>
-              <div className="relative z-10 flex flex-col items-center justify-center h-full animate-pulse">
-                <p className="text-lg sm:text-xl font-semibold mb-4">Play Tetris in your browser!</p>
-                <p className="text-sm sm:text-base">Use the arrow keys to move and rotate the blocks.</p>
-                <p className="text-sm sm:text-base">Press 'Space' to drop the block quickly.</p>
-                <p className="text-sm sm:text-base">Press 'P' to pause the game.</p>
-                <p className="text-xs sm:text-sm mt-4 opacity-75 animate-bounce">Click here or press any key to start!</p>
-              </div>
-            </div>
-          )}
-
-          {gameOver && (
-            <div className="absolute inset-0 bg-black opacity-75 rounded-2xl flex items-center justify-center z-20">
-              <div className="text-center animate-pulse">
-                <h2 className="text-2xl font-bold mb-4">Game Over!</h2>
-                <p className="text-lg mb-2">Score: {score}</p>
-                <p className="text-lg mb-4">Lines: {lines}</p>
-                <button 
-                  onClick={resetGame}
-                  className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
-                >
-                  Play Again
-                </button>
-              </div>
-            </div>
-          )}
-
-          {paused && gameStarted && !gameOver && (
-            <div className="absolute inset-0 bg-black opacity-50 rounded-2xl flex items-center justify-center z-20">
-              <div className="text-center animate-pulse">
-                <h2 className="text-2xl font-bold mb-4">Paused</h2>
-                <p className="text-sm">Press 'P' to resume</p>
-              </div>
-            </div>
-          )}
-
-          {gameStarted && (
-            <div className="relative w-full h-full flex flex-row items-start justify-center">
-              {/* Left Scoreboard */}
-              <div className="flex justify-end" style={{ width: "100%", maxWidth: 250, maxHeight: "100%" }}>
-                <div className="bg-blue-950 p-2 rounded-l-md w-28 sm:w-36 flex flex-col justify-start transition-all duration-300 hover:bg-blue-900">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-xs sm:text-sm">Score:</span>
-                    <span className="text-xs sm:text-sm font-mono">{score}</span>
-                  </div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-xs sm:text-sm">High:</span>
-                    <span className="text-xs sm:text-sm font-mono text-yellow-400">{highScore}</span>
-                  </div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-xs sm:text-sm">Lines:</span>
-                    <span className="text-xs sm:text-sm font-mono">{lines}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-xs sm:text-sm">Level:</span>
-                    <span className="text-xs sm:text-sm font-mono text-green-400">{level}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Game Grid */}
-              <div
-                className="grid gap-0.5 p-2 relative touch-none rounded-bl-md aspect-[1/2] transition-all duration-300"
-                style={{
-                  gridTemplateRows: `repeat(20, 1fr)`,
-                  gridTemplateColumns: `repeat(10, 1fr)`,
-                  width: "100%",
-                  maxHeight: "100%",
-                  maxWidth: 250,
-                  background: "#30317d",
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-                  animation: isClearing ? 'pulse 0.5s ease-in-out' : undefined
-                }}
+      <main className="flex flex-col items-center w-full flex-1">
+        <div className="container mx-auto flex flex-col items-center justify-center">
+          <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white animate-pulse">Tetris</h1>
+          <div className={`w-full sm:w-4/6 aspect-[5/7] ${isMobileLayout ? "" : "sm:aspect-video "}tetris-background flex flex-col items-center justify-center rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto`}>
+            
+            {/* Score Popup */}
+            {scorePopup.show && (
+              <div 
+                className="absolute top-1/6 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
+                style={{ animation: 'scorePopup 1s ease-out forwards' }}
               >
-                {renderGrid()}
-              </div>
-
-              {/* Right Side UI */}
-              <div className="flex flex-col relative aspect-[1/2]" style={{ width: "100%", maxWidth: 250, maxHeight: "100%" }}>
-                {/* Next Block */}
-                <div className="bg-blue-950 p-2 rounded-r-sm mb-2 aspect-square w-24 transition-all duration-300 hover:bg-blue-900">
-                  <p className="text-xs mb-1 text-center">Next:</p>
-                  <div 
-                    className="grid gap-0.5 mx-auto"
-                    style={{
-                      gridTemplateRows: 'repeat(4, 1fr)',
-                      gridTemplateColumns: 'repeat(4, 1fr)',
-                      width: '60px',
-                      height: '60px'
-                    }}
-                  >
-                    {renderNextPiece()}
-                  </div>
+                <div className="bg-yellow-400 opacity-40 text-black px-4 py-2 rounded-lg font-bold text-xl shadow-lg">
+                  {scorePopup.type}
+                  {scorePopup.points > 0 && (
+                    <div className="text-sm">+{scorePopup.points}</div>
+                  )}
                 </div>
+              </div>
+            )}
+            
+            {!gameStarted && !gameOver && (
+              <div onClick={() => setGameStarted(true)} className="cursor-pointer">
+                <div className="absolute inset-0 bg-black opacity-50 rounded-2xl"></div>
+                <div className="relative z-10 flex flex-col items-center justify-center h-full animate-pulse">
+                  <p className="text-lg sm:text-xl font-semibold mb-4">Play Tetris in your browser!</p>
+                  <p className="text-sm sm:text-base">Use the arrow keys to move and rotate the blocks.</p>
+                  <p className="text-sm sm:text-base">Press 'Space' to drop the block quickly.</p>
+                  <p className="text-sm sm:text-base">Press 'P' to pause the game.</p>
+                  <p className="text-xs sm:text-sm mt-4 opacity-75 animate-bounce">Click here or press any key to start!</p>
+                </div>
+              </div>
+            )}
 
-                {/* Controls */}
-                <div className="bg-blue-950 p-2 rounded-r-sm gap-2 flex flex-col items-center absolute bottom-0 transition-all duration-300 hover:bg-blue-900">
-                  <button 
-                    onClick={() => setPaused(!paused)}
-                    className="text-lg hover:scale-110 transition-transform duration-200 active:scale-95"
-                  >
-                    {paused ? '▶️' : '⏸️'}
-                  </button>
+            {gameOver && (
+              <div className="absolute inset-0 bg-black opacity-75 rounded-2xl flex items-center justify-center z-20">
+                <div className="text-center animate-pulse">
+                  <h2 className="text-2xl font-bold mb-4">Game Over!</h2>
+                  <p className="text-lg mb-2">Score: {score}</p>
+                  <p className="text-lg mb-4">Lines: {lines}</p>
                   <button 
                     onClick={resetGame}
-                    className="text-lg hover:scale-110 transition-transform duration-200 active:scale-95"
+                    className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
                   >
-                    🔄
+                    Play Again
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {paused && gameStarted && !gameOver && (
+              <div className="absolute inset-0 bg-black opacity-50 rounded-2xl flex items-center justify-center z-20">
+                <div className="text-center animate-pulse">
+                  <h2 className="text-2xl font-bold mb-4">Paused</h2>
+                  <p className="text-sm">Press 'P' to resume</p>
+                </div>
+              </div>
+            )}
+
+            {gameStarted && (
+              <div className="relative w-full h-full flex flex-row items-start justify-center">
+                {/* Left Scoreboard */}
+                <div className="flex justify-end" style={{ width: "100%", maxWidth: 250, maxHeight: "100%" }}>
+                  <div className="bg-blue-950 p-2 rounded-l-md w-28 sm:w-36 flex flex-col justify-start transition-all duration-300 hover:bg-blue-900">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs sm:text-sm">Score:</span>
+                      <span className="text-xs sm:text-sm font-mono">{score}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs sm:text-sm">High:</span>
+                      <span className="text-xs sm:text-sm font-mono text-yellow-400">{highScore}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs sm:text-sm">Lines:</span>
+                      <span className="text-xs sm:text-sm font-mono">{lines}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm">Level:</span>
+                      <span className="text-xs sm:text-sm font-mono text-green-400">{level}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Game Grid */}
+                <div
+                  className="grid gap-0.5 p-2 relative touch-none rounded-bl-md aspect-[1/2] transition-all duration-300"
+                  style={{
+                    gridTemplateRows: `repeat(20, 1fr)`,
+                    gridTemplateColumns: `repeat(10, 1fr)`,
+                    width: "100%",
+                    maxHeight: "100%",
+                    maxWidth: 250,
+                    background: "#30317d",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                    animation: isClearing ? 'pulse 0.5s ease-in-out' : undefined
+                  }}
+                >
+                  {renderGrid()}
+                </div>
+
+                {/* Right Side UI */}
+                <div className="flex flex-col relative aspect-[1/2]" style={{ width: "100%", maxWidth: 250, maxHeight: "100%" }}>
+                  {/* Next Block */}
+                  <div className="bg-blue-950 p-2 rounded-r-sm mb-2 aspect-square w-24 transition-all duration-300 hover:bg-blue-900">
+                    <p className="text-xs mb-1 text-center">Next:</p>
+                    <div 
+                      className="grid gap-0.5 mx-auto"
+                      style={{
+                        gridTemplateRows: 'repeat(4, 1fr)',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        width: '60px',
+                        height: '60px'
+                      }}
+                    >
+                      {renderNextPiece()}
+                    </div>
+                  </div>
+
+                  {/* Controls */}
+                  <div className="bg-blue-950 p-2 rounded-r-sm gap-2 flex flex-col items-center absolute bottom-0 transition-all duration-300 hover:bg-blue-900">
+                    <button 
+                      onClick={() => setPaused(!paused)}
+                      className="text-lg hover:scale-110 transition-transform duration-200 active:scale-95"
+                    >
+                      {paused ? '▶️' : '⏸️'}
+                    </button>
+                    <button 
+                      onClick={resetGame}
+                      className="text-lg hover:scale-110 transition-transform duration-200 active:scale-95"
+                    >
+                      🔄
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
