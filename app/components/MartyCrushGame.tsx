@@ -248,7 +248,7 @@ export default function MartyCrushGame() {
         color: MARTY_CANDY.color,
         content: (
           <div className="relative w-full h-full flex items-center justify-center">
-            <img src="app\assets\martyCrush\marty.svg" alt="Marty" className="w-full h-full object-contain" />
+            <img src=".\assets\martyCrush\marty.svg" alt="Marty" className="w-full h-full object-contain" />
           </div>
         )
       };
