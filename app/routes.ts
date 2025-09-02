@@ -9,4 +9,5 @@ export default [
     route("maybCardGames/blockBlast", "routes/blockBlast.tsx"),
     route("maybCardGames/tetris", "routes/tetris.tsx"),
     route("maybCardGames/battleships", "routes/battleships.tsx"),
+    route("maybCardGames/martyCrush", "routes/martyCrush.tsx"),
 ] satisfies RouteConfig;

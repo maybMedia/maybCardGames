@@ -239,7 +239,7 @@ export default function Blackjack() {
         `
       }} />
       <div className="container mx-auto flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold p-4 sm:p-5 text-center">Blackjack</h1>
+        <h1 className="text-2xl font-bold p-4 text-center text-blue-500 drop-shadow-lg">Blackjack</h1>
         <div className="w-full sm:w-4/6 aspect-[4/5] sm:aspect-video poker-table flex flex-col justify-between rounded-2xl p-2 sm:p-4 text-white relative overflow-x-auto">
           {playerHand.length === 0 ? (
             <div className="flex items-center justify-center h-full">

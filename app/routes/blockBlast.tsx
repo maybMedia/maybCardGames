@@ -748,9 +748,9 @@ export default function BlockBlast() {
   return (
     <div className="flex flex-col items-center px-2 sm:px-0 overflow-hidden touch-none">
       <div className="container mx-auto flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold p-4 sm:p-5 text-center text-white">Block Blast</h1>
+        <h1 className="text-2xl font-bold p-4 text-center text-blue-500 drop-shadow-lg">Block Blast</h1>
 
-        <div className={`w-full sm:w-5/6 rainbow-bg sm:aspect-video aspect-[5/7] flex ${isCompactHeight ? "flex-row gap-4 justify-center" : "flex-col"} items-center rounded-2xl p-2 sm:p-4 text-white relative overflow-hidden shadow-2xl`}>
+        <div className={`w-full sm:w-4/6 rainbow-bg sm:aspect-video aspect-[5/7] flex ${isCompactHeight ? "flex-row gap-4 justify-center" : "flex-col"} items-center rounded-2xl p-2 sm:p-4 text-white relative overflow-hidden shadow-2xl`}>
           {/* Score */}
           <div className="w-full max-w-96 flex justify-between items-center mb-4">
             <h1 className="text-base sm:text-lg font-bold bg-[rgba(0,20,60,0.7)] p-1 rounded-lg">Score: {score}</h1>
